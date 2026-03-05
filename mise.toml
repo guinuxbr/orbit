@@ -1,0 +1,7 @@
+[tasks.build]
+description = "Build the project"
+run = "docker compose down && docker compose build && docker compose up -d --force-recreate"
+
+[tasks.destroy]
+description = "Destroy the project"
+run = "docker compose down && docker container rm orbit && docker network rm orbit_default"

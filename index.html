@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orbit</title>
+  <meta name="description" content="Orbit — A modern, fun spinner for names, raffles, decisions, and random picks." />
+  <!-- Font preconnect and styles -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/style.css">
+  <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="shortcut icon" href="/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/site.webmanifest" />
+</head>
+
+<body
+  class="font-outfit bg-orbit-light-bg dark:bg-orbit-dark-bg text-text dark:text-gray-100 transition-colors duration-300 min-h-screen">
+  <div id="app" class="flex flex-col min-h-screen">
+    <!-- Main Application Container -->
+
+    <!-- Gravity Background Canvas -->
+    <canvas id="gravity-canvas"
+      class="fixed inset-0 w-full h-full pointer-events-none z-[-1] opacity-50 dark:opacity-70 transition-opacity duration-1000"></canvas>
+
+    <!-- Navbar -->
+    <nav
+      class="navbar h-[72px] px-8 flex justify-between items-center bg-white/80 dark:bg-black/60 backdrop-blur-xl border-b border-white/20 dark:border-white/10 sticky top-0 z-100 transition-all">
+      <div class="nav-left">
+        <h1 class="logo text-3xl font-extrabold flex items-center gap-3">
+          <img src="/img/sun_icon.png" alt="Orbit Logo"
+            class="w-10 h-10 object-contain rounded-full drop-shadow-primary"> Orbit
+        </h1>
+      </div>
+      <div class="nav-right flex items-center gap-6">
+        <div
+          class="tabs flex gap-2 bg-white/50 dark:bg-white/5 p-1.5 rounded-radius border border-gray-200 dark:border-white/10 shadow-sm">
+          <button
+            class="tab-link active px-4 py-2 rounded-radius-sm font-semibold transition-all hover:text-primary dark:hover:text-primary-light"
+            data-tab="names">📝 Names</button>
+          <button
+            class="tab-link px-4 py-2 rounded-radius-sm font-semibold transition-all text-text-muted hover:text-primary dark:hover:text-primary-light"
+            data-tab="image">🖼️ Image</button>
+          <button
+            class="tab-link px-4 py-2 rounded-radius-sm font-semibold transition-all text-text-muted hover:text-primary dark:hover:text-primary-light"
+            data-tab="sounds">🔊 Sounds</button>
+          <button
+            class="tab-link px-4 py-2 rounded-radius-sm font-semibold transition-all text-text-muted hover:text-primary dark:hover:text-primary-light"
+            data-tab="display">⚙️ Display</button>
+        </div>
+        <div
+          class="theme-switcher flex bg-white/50 dark:bg-white/5 p-1 rounded-full border border-gray-200 dark:border-white/10 shadow-inner"
+          id="theme-switcher">
+          <button data-theme-value="light" title="Light theme"
+            class="w-9 h-9 flex items-center justify-center rounded-full transition-all text-xl hover:scale-110 active:scale-95">☀️</button>
+          <button data-theme-value="dark" title="Dark theme"
+            class="w-9 h-9 flex items-center justify-center rounded-full transition-all text-xl hover:scale-110 active:scale-95">🌙</button>
+          <button data-theme-value="auto" title="Auto (system)"
+            class="w-9 h-9 flex items-center justify-center rounded-full transition-all text-xl hover:scale-110 active:scale-95">💻</button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Layout: Wheel + Settings -->
+    <main class="main-layout flex-1 flex flex-col lg:flex-row p-8 gap-12 max-w-[1400px] mx-auto w-full transition-all">
+
+      <!-- Wheel Area -->
+      <section class="wheel-section flex-2 flex flex-col justify-center items-center min-h-[600px] lg:min-h-[750px]">
+        <div class="wheel-wrapper relative w-[938px] h-[938px] max-w-[90vw] max-h-[90vw] transition-transform">
+          <!-- Stylized Arrow Pointer -->
+          <div
+            class="arrow-pointer absolute top-1/2 -right-[20px] -translate-y-1/2 z-30 drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)]">
+            <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg"
+              class="filter drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">
+              <path d="M12 30L48 12V48L12 30Z" fill="url(#arrow-grad)" stroke="white" stroke-width="3"
+                stroke-linejoin="round" />
+              <path d="M18 30L44 18V42L18 30Z" fill="white" fill-opacity="0.2" />
+              <defs>
+                <linearGradient id="arrow-grad" x1="48" y1="30" x2="12" y2="30" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="var(--color-primary)" />
+                  <stop offset="1" stop-color="var(--color-accent)" />
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <canvas id="wheel" width="875" height="875"
+            class="w-full h-full rounded-full drop-shadow-[0_20px_40px_rgba(0,0,0,0.3)] dark:drop-shadow-[0_20px_60px_rgba(0,0,0,0.6)]"></canvas>
+          <button id="spin-btn"
+            class="spin-button absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[275px] h-[275px] rounded-full bg-transparent border-none cursor-pointer z-20 outline-none"></button>
+        </div>
+        <div id="spin-instruction"
+          class="spin-instruction mt-8 text-3xl font-extrabold animate-pulse-slow text-text dark:text-gray-100 transition-all">
+          Click center to SPIN!</div>
+      </section>
+
+      <!-- Tab Content (Tailwind Refactored) -->
+      <section class="settings-panel flex-1 min-w-[380px] hidden flex-col open:flex gap-4">
+
+        <div id="tab-names" class="tab-content active transition-all duration-300">
+          <div
+            class="glass p-8 rounded-radius border border-white/20 dark:border-white/10 shadow-xl bg-white/80 dark:bg-white/5 backdrop-blur-xl animate-in fade-in slide-in-from-bottom-5">
+            <h3
+              class="mb-6 pb-3 text-2xl font-bold border-b-2 border-gray-200 dark:border-white/20 transition-colors text-text dark:text-white">
+              Manage Names</h3>
+            <textarea id="names-input"
+              class="w-full p-4 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 text-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all text-text dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+              placeholder="Enter names, one per line…" rows="12"></textarea>
+          </div>
+        </div>
+
+        <div id="tab-image" class="tab-content transition-all duration-300">
+          <div
+            class="glass p-8 rounded-radius border border-white/20 dark:border-white/10 shadow-xl bg-white/80 dark:bg-white/5 backdrop-blur-xl">
+            <h3
+              class="mb-6 pb-3 text-2xl font-bold border-b-2 border-gray-200 dark:border-white/20 transition-colors text-text dark:text-white">
+              Center Image</h3>
+            <div class="mb-6">
+              <label for="image-size-select" class="block mb-2 font-bold text-text-muted dark:text-white">Image
+                Size</label>
+              <select id="image-size-select"
+                class="w-full p-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 focus:outline-none focus:ring-2 focus:ring-primary transition-all text-text dark:text-white">
+                <option value="100">S</option>
+                <option value="138" selected>M</option>
+                <option value="175">L</option>
+                <option value="225">XL</option>
+                <option value="275">XXL</option>
+              </select>
+            </div>
+            <div class="mb-6 flex items-center gap-3">
+              <input type="checkbox" id="image-bg-toggle"
+                class="w-5 h-5 accent-primary rounded cursor-pointer transition-all" />
+              <label for="image-bg-toggle" class="font-bold text-text-muted dark:text-white cursor-pointer select-none">
+                Use as Wheel Background
+              </label>
+            </div>
+            <div class="mb-6">
+              <label class="block mb-2 font-bold text-text-muted dark:text-white">Image Actions</label>
+              <div class="flex gap-3">
+                <div class="flex-1">
+                  <label for="center-image-input"
+                    class="flex items-center justify-center p-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 font-bold cursor-pointer hover:border-primary hover:text-primary dark:hover:border-primary dark:text-white transition-all">
+                    Upload Image
+                  </label>
+                  <input type="file" id="center-image-input" accept="image/*" class="hidden" />
+                </div>
+                <button id="browse-gallery-btn"
+                  class="flex-1 p-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 font-bold hover:border-primary hover:text-primary dark:hover:border-primary dark:text-white transition-all">
+                  Browse Gallery
+                </button>
+              </div>
+            </div>
+
+            <button id="clear-image-btn"
+              class="w-full p-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 font-bold hover:border-primary dark:hover:border-primary dark:text-white transition-all">
+              ✕ Clear Image
+            </button>
+          </div>
+        </div>
+
+        <div id="tab-sounds" class="tab-content transition-all duration-300">
+          <div
+            class="glass p-8 rounded-radius border border-white/20 dark:border-white/10 shadow-xl bg-white/80 dark:bg-white/5 backdrop-blur-xl">
+            <h3
+              class="mb-6 pb-3 text-2xl font-bold border-b-2 border-gray-200 dark:border-white/20 transition-colors text-text dark:text-white">
+              Sound Effects</h3>
+            <div class="mb-6">
+              <label for="spinning-sound" class="block mb-2 font-bold text-text-muted dark:text-white">Spinning
+                Music</label>
+              <div class="flex gap-3 items-center">
+                <select id="spinning-sound"
+                  class="flex-1 p-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 text-text dark:text-white focus:outline-none focus:ring-2 focus:ring-primary">
+                  <option value="none">None</option>
+                  <option value="random" selected>🎲 Random</option>
+                </select>
+                <div class="flex-1">
+                  <label for="custom-music-input"
+                    class="flex items-center justify-center p-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 font-bold cursor-pointer hover:border-primary hover:text-primary dark:hover:border-primary dark:text-white transition-all">
+                    Upload MP3
+                  </label>
+                  <input type="file" id="custom-music-input" accept="audio/*" class="hidden" />
+                </div>
+              </div>
+            </div>
+            <div class="mb-6">
+              <label for="winner-sound" class="block mb-2 font-bold text-text-muted dark:text-white">Winner
+                SFX</label>
+              <div class="flex gap-3 items-center">
+                <select id="winner-sound"
+                  class="flex-1 p-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 text-text dark:text-white focus:outline-none focus:ring-2 focus:ring-primary">
+                  <option value="none">None</option>
+                  <option value="random" selected>🎲 Random</option>
+                </select>
+                <div class="flex-1">
+                  <label for="custom-sfx-input"
+                    class="flex items-center justify-center p-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 font-bold cursor-pointer hover:border-primary hover:text-primary dark:hover:border-primary transition-all text-center text-text dark:text-white">
+                    Upload MP3
+                  </label>
+                  <input type="file" id="custom-sfx-input" accept="audio/*" class="hidden" />
+                </div>
+              </div>
+            </div>
+            <div class="mb-6">
+              <label for="volume-slider" class="block mb-2 font-bold text-text-muted dark:text-white">Volume</label>
+              <div class="flex items-center gap-4">
+                <input type="range" id="volume-slider" min="0" max="100" value="50"
+                  class="flex-1 accent-primary h-2 bg-gray-200 dark:bg-white/10 rounded-lg appearance-none cursor-pointer" />
+                <span id="volume-value" class="min-w-[40px] font-bold text-text dark:text-white">50%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="tab-display" class="tab-content transition-all duration-300">
+          <div
+            class="glass p-8 rounded-radius border border-white/20 dark:border-white/10 shadow-xl bg-white/80 dark:bg-white/5 backdrop-blur-xl">
+            <h3
+              class="mb-6 pb-3 text-2xl font-bold border-b-2 border-gray-200 dark:border-white/20 transition-colors text-text dark:text-white">
+              Display Settings</h3>
+            <div class="mb-6">
+              <label for="ui-theme-select" class="block mb-2 font-bold text-text-muted dark:text-white">Colour
+                Palette</label>
+              <select id="ui-theme-select"
+                class="w-full p-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 text-text dark:text-white focus:outline-none focus:ring-2 focus:ring-primary transition-all"></select>
+            </div>
+            <div class="mb-6">
+              <label for="spin-duration" class="block mb-2 font-bold text-text-muted dark:text-white">Spin
+                Duration (seconds)</label>
+              <input type="number" id="spin-duration" min="1" max="30" value="15" step="1"
+                class="w-full p-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 text-text dark:text-white focus:outline-none focus:ring-2 focus:ring-primary transition-all" />
+            </div>
+            <div class="mb-6">
+              <label for="winner-message" class="block mb-2 font-bold text-text-muted dark:text-white">Winner
+                Message</label>
+              <input type="text" id="winner-message" value="{name} wins!" placeholder="Use {name} for the winner"
+                class="w-full p-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 text-text dark:text-white focus:outline-none focus:ring-2 focus:ring-primary transition-all" />
+            </div>
+          </div>
+        </div>
+
+      </section>
+    </main>
+
+    <!-- Winner Toast (Dynamic Notification) -->
+    <div id="winner-toast"
+      class="winner-toast fixed top-[100px] left-1/2 -translate-x-1/2 -translate-y-[20px] bg-white dark:bg-orbit-dark-surface p-6 px-10 rounded-radius border border-primary/50 dark:border-primary/30 shadow-2xl z-1000 flex flex-col items-center gap-6 opacity-0 pointer-events-none transition-all duration-500 backdrop-blur-2xl">
+      <div class="winner-info text-center">
+        <h2 id="winner-text"
+          class="text-4xl font-extrabold bg-primary-gradient bg-clip-text text-transparent animate-bounce"></h2>
+      </div>
+      <div class="winner-actions flex gap-4">
+        <button id="remove-one-btn"
+          class="px-6 py-2.5 rounded-lg border border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary font-bold transition-all hover:scale-105 active:scale-95">Remove
+          this</button>
+        <button id="remove-all-btn"
+          class="px-6 py-2.5 rounded-lg bg-red-600 text-white font-bold shadow-lg shadow-red-600/30 hover:bg-red-700 hover:shadow-xl hover:shadow-red-600/40 transition-all hover:scale-105 active:scale-95">Remove
+          all</button>
+        <button id="close-toast-btn"
+          class="px-6 py-2.5 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-text-muted dark:text-gray-300 font-bold transition-all hover:border-text-muted dark:hover:border-gray-400 hover:scale-105 active:scale-95">Close</button>
+      </div>
+    </div>
+
+    <!-- Gallery Modal -->
+    <div id="gallery-modal"
+      class="gallery-modal hidden fixed inset-0 bg-black/60 backdrop-blur-md z-2000 flex justify-center items-center p-8 transition-opacity duration-300">
+      <div
+        class="gallery-modal-content bg-white dark:bg-orbit-dark-surface w-full max-w-[900px] max-h-[85vh] rounded-radius p-8 flex flex-col shadow-2xl animate-in zoom-in-95 duration-300 relative border border-white/20 dark:border-white/10 transition-colors">
+        <div
+          class="gallery-modal-header flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+          <h3 class="text-3xl font-extrabold text-text dark:text-gray-100 transition-colors">Select an Image</h3>
+          <div class="search-container flex w-full md:w-auto gap-2 flex-1 max-w-md">
+            <input type="text" id="gallery-search-input" placeholder="Search topics (e.g. dogs, clouds)..."
+              class="flex-1 p-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 text-text dark:text-white focus:outline-none focus:ring-2 focus:ring-primary transition-all" />
+            <button id="gallery-search-btn"
+              class="p-3 px-6 rounded-radius-sm bg-primary text-white font-bold hover:bg-primary/90 transition-all active:scale-95 flex items-center gap-2">
+              <span>🔍</span> Search
+            </button>
+          </div>
+          <button id="gallery-close-btn"
+            class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-white/10 text-2xl text-text-muted dark:text-gray-400 transition-all">✕</button>
+        </div>
+        <div id="gallery-grid"
+          class="flex-1 overflow-y-auto grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-6 mb-8 pr-2 custom-scrollbar">
+        </div>
+        <button id="gallery-load-more"
+          class="w-full p-4 rounded-radius-sm border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 font-bold hover:border-primary hover:text-primary transition-all">Load
+          More Images</button>
+      </div>
+    </div>
+
+    <!-- Error Banner -->
+    <div id="error-banner"
+      class="error-banner fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 scale-90 bg-danger/95 backdrop-blur-xl p-6 px-10 rounded-radius border border-white/20 shadow-2xl z-3000 flex items-center gap-6 text-white opacity-0 pointer-events-none transition-all duration-400">
+      <div class="error-content flex items-center gap-4">
+        <span class="error-icon text-3xl">💀</span>
+        <span id="error-message" class="text-lg font-bold"></span>
+      </div>
+      <button id="close-error-btn"
+        class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/20 text-white transition-all text-xl">✕</button>
+    </div>
+
+    <!-- Footer -->
+    <footer
+      class="footer py-8 px-8 mt-auto bg-white/40 dark:bg-black/40 backdrop-blur-md border-t border-white/20 dark:border-white/10 transition-all">
+      <div class="max-w-[1400px] mx-auto w-full flex flex-col md:flex-row justify-between items-center gap-6">
+        <div class="footer-left">
+          <p class="text-text-muted dark:text-gray-400 font-semibold">© 2026 Orbit.</p>
+        </div>
+        <div class="footer-right flex items-center gap-6">
+          <a href="https://github.com/guinuxbr" target="_blank" rel="noopener noreferrer"
+            class="social-icon text-text-muted dark:text-gray-400 hover:text-primary dark:hover:text-primary-light transition-all scale-110 hover:scale-125"
+            title="GitHub">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path
+                d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22">
+              </path>
+            </svg>
+          </a>
+          <a href="https://x.com/guinuxbr" target="_blank" rel="noopener noreferrer"
+            class="social-icon text-text-muted dark:text-gray-400 hover:text-primary dark:hover:text-primary-light transition-all scale-110 hover:scale-125"
+            title="X (Twitter)">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 4l11.733 16h4.267l-11.733 -16z" />
+              <path d="M4 20l6.768 -6.768m2.464 -2.464l6.768 -6.744" />
+            </svg>
+          </a>
+          <a href="https://www.linkedin.com/in/gllmarques" target="_blank" rel="noopener noreferrer"
+            class="social-icon text-text-muted dark:text-gray-400 hover:text-primary dark:hover:text-primary-light transition-all scale-110 hover:scale-125"
+            title="LinkedIn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+              <rect x="2" y="9" width="4" height="12"></rect>
+              <circle cx="4" cy="4" r="2"></circle>
+            </svg>
+          </a>
+          <a href="https://www.instagram.com/guinuxbr" target="_blank" rel="noopener noreferrer"
+            class="social-icon text-text-muted dark:text-gray-400 hover:text-primary dark:hover:text-primary-light transition-all scale-110 hover:scale-125"
+            title="Instagram">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+            </svg>
+          </a>
+        </div>
+      </div>
+    </footer>
+
+  </div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+
+</html>
