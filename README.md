@@ -1,6 +1,6 @@
 # ☀️ Orbit
 
-**Orbit** is a modern, high-performance, and visually stunning web-based spinner designed for names, raffles, decisions, and random picks. Built with a focus on aesthetics and user experience, it offers a premium feel with glassmorphism effects, smooth animations, and deep customization options.
+**Orbit** is a modern, high-performance, and beautiful web-based spinner designed for names, raffles, decisions, and random picks. Built with a focus on aesthetics and user experience, it offers a premium feel with glassmorphism effects, smooth animations, and customization options.
 
 ![Orbit Banner](public/img/banner.png)
 
@@ -12,7 +12,7 @@
 - **🎨 Premium Design System**:
   - **Glassmorphism UI**: Beautifully blurred, semi-transparent panels.
   - **Dark & Light Modes**: Seamless transition between themes with system auto-detection.
-  - **Dynamic Palettes**: Choose from curated color themes that adapt the entire application's look.
+  - **Dynamic Palettes**: Choose from curated colour themes that adapt the entire application's look.
 - **⚙️ Advanced Customization**: Adjust spin duration, winner messages, and UI scaling to fit any screen or use case.
 - **🚀 Performance Focused**: Built with Vite and Tailwind CSS for lightning-fast loads and silky-smooth 60fps animations.
 
@@ -86,13 +86,13 @@ The application will be accessible at `http://localhost:8080`.
 
 The project uses a standard Vite/Tailwind configuration. You can customize the look and feel by modifying:
 
-- `tailwind.config.js`: Define your color tokens and theme extensions.
-- `theme.js`: Manage the dynamic color palettes.
+- `tailwind.config.js`: Define your colour tokens and theme extensions.
+- `theme.js`: Manage the dynamic colour palettes.
 - `nginx.conf`: Fine-tune the production server performance and headers.
 
-## 📜 License
+## 📜 Licence
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE.md) file for details.
+This project is licensed under the MIT Licence - see the [LICENSE](LICENSE.md) file for details.
 
 ---
 
