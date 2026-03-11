@@ -29,14 +29,16 @@
 
     <!-- Navbar -->
     <nav
-      class="navbar h-[72px] px-8 flex justify-between items-center bg-white/80 dark:bg-black/60 backdrop-blur-xl border-b border-white/20 dark:border-white/10 sticky top-0 z-100 transition-all">
+      class="navbar h-[64px] lg:h-[72px] px-4 lg:px-8 flex justify-between items-center bg-white/80 dark:bg-black/60 backdrop-blur-xl border-b border-white/20 dark:border-white/10 sticky top-0 z-100 transition-all">
       <div class="nav-left">
-        <h1 class="logo text-3xl font-extrabold flex items-center gap-3">
+        <h1 class="logo text-2xl lg:text-3xl font-extrabold flex items-center gap-2 lg:gap-3">
           <img src="/img/sun_icon.png" alt="Orbit Logo"
-            class="w-10 h-10 object-contain rounded-full drop-shadow-primary"> Orbit
+            class="w-8 h-8 lg:w-10 lg:h-10 object-contain rounded-full drop-shadow-primary"> Orbit
         </h1>
       </div>
-      <div class="nav-right flex items-center gap-6">
+
+      <!-- Desktop nav-right (visible on lg+) -->
+      <div class="nav-right hidden lg:flex items-center gap-6">
         <div
           class="tabs flex gap-2 bg-white/50 dark:bg-white/5 p-1.5 rounded-radius border border-gray-200 dark:border-white/10 shadow-sm">
           <button
@@ -63,19 +65,64 @@
             class="w-9 h-9 flex items-center justify-center rounded-full transition-all text-xl hover:scale-110 active:scale-95">💻</button>
         </div>
       </div>
+
+      <!-- Mobile hamburger button (visible below lg) -->
+      <button id="nav-menu-btn"
+        class="lg:hidden flex flex-col justify-center items-center w-10 h-10 gap-[5px] rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-all"
+        aria-label="Open menu" aria-expanded="false" aria-controls="nav-drawer">
+        <span class="hamburger-line block w-6 h-[2px] bg-text dark:bg-white rounded-full transition-all"></span>
+        <span class="hamburger-line block w-6 h-[2px] bg-text dark:bg-white rounded-full transition-all"></span>
+        <span class="hamburger-line block w-6 h-[2px] bg-text dark:bg-white rounded-full transition-all"></span>
+      </button>
     </nav>
 
+    <!-- Mobile Nav Drawer (below lg) -->
+    <div id="nav-drawer"
+      class="nav-drawer lg:hidden bg-white/95 dark:bg-black/90 backdrop-blur-xl border-b border-white/20 dark:border-white/10 overflow-hidden transition-all duration-300 max-h-0 z-90 relative">
+      <div class="p-4 flex flex-col gap-3">
+        <!-- Mobile tabs -->
+        <div class="flex flex-col gap-1">
+          <button
+            class="tab-link active w-full text-left px-4 py-3 rounded-radius-sm font-semibold transition-all hover:text-primary dark:hover:text-primary-light"
+            data-tab="names">📝 Names</button>
+          <button
+            class="tab-link w-full text-left px-4 py-3 rounded-radius-sm font-semibold transition-all text-text-muted hover:text-primary dark:hover:text-primary-light"
+            data-tab="image">🖼️ Image</button>
+          <button
+            class="tab-link w-full text-left px-4 py-3 rounded-radius-sm font-semibold transition-all text-text-muted hover:text-primary dark:hover:text-primary-light"
+            data-tab="sounds">🔊 Sounds</button>
+          <button
+            class="tab-link w-full text-left px-4 py-3 rounded-radius-sm font-semibold transition-all text-text-muted hover:text-primary dark:hover:text-primary-light"
+            data-tab="display">⚙️ Display</button>
+        </div>
+        <!-- Mobile theme switcher -->
+        <div class="flex items-center gap-2 pt-2 border-t border-gray-200 dark:border-white/10">
+          <span class="text-sm font-semibold text-text-muted dark:text-gray-400">Theme:</span>
+          <div
+            class="theme-switcher flex bg-white/50 dark:bg-white/5 p-1 rounded-full border border-gray-200 dark:border-white/10 shadow-inner"
+            id="theme-switcher-mobile">
+            <button data-theme-value="light" title="Light theme"
+              class="w-9 h-9 flex items-center justify-center rounded-full transition-all text-xl hover:scale-110 active:scale-95">☀️</button>
+            <button data-theme-value="dark" title="Dark theme"
+              class="w-9 h-9 flex items-center justify-center rounded-full transition-all text-xl hover:scale-110 active:scale-95">🌙</button>
+            <button data-theme-value="auto" title="Auto (system)"
+              class="w-9 h-9 flex items-center justify-center rounded-full transition-all text-xl hover:scale-110 active:scale-95">💻</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Main Layout: Wheel + Settings -->
-    <main class="main-layout flex-1 flex flex-col lg:flex-row p-8 gap-12 max-w-[1400px] mx-auto w-full transition-all">
+    <main class="main-layout flex-1 flex flex-col lg:flex-row p-4 lg:p-8 gap-6 lg:gap-12 max-w-[1400px] mx-auto w-full transition-all">
 
       <!-- Wheel Area -->
-      <section class="wheel-section flex-2 flex flex-col justify-center items-center min-h-[600px] lg:min-h-[750px]">
-        <div class="wheel-wrapper relative w-[938px] h-[938px] max-w-[90vw] max-h-[90vw] transition-transform">
+      <section class="wheel-section flex-2 flex flex-col justify-center items-center">
+        <div id="wheel-wrapper" class="wheel-wrapper relative w-full max-w-[90vw] lg:max-w-[660px] xl:max-w-[780px] 2xl:max-w-[938px] mx-auto aspect-square transition-transform">
           <!-- Stylized Arrow Pointer -->
           <div
-            class="arrow-pointer absolute top-1/2 -right-[20px] -translate-y-1/2 z-30 drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)]">
-            <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg"
-              class="filter drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">
+            class="arrow-pointer absolute top-1/2 -right-[14px] sm:-right-[18px] lg:-right-[20px] -translate-y-1/2 z-30 drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)]">
+            <svg class="w-10 h-10 sm:w-12 sm:h-12 lg:w-[60px] lg:h-[60px] filter drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]"
+              viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M12 30L48 12V48L12 30Z" fill="url(#arrow-grad)" stroke="white" stroke-width="3"
                 stroke-linejoin="round" />
               <path d="M18 30L44 18V42L18 30Z" fill="white" fill-opacity="0.2" />
@@ -90,31 +137,31 @@
           <canvas id="wheel" width="875" height="875"
             class="w-full h-full rounded-full drop-shadow-[0_20px_40px_rgba(0,0,0,0.3)] dark:drop-shadow-[0_20px_60px_rgba(0,0,0,0.6)]"></canvas>
           <button id="spin-btn"
-            class="spin-button absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[275px] h-[275px] rounded-full bg-transparent border-none cursor-pointer z-20 outline-none"></button>
+            class="spin-button absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[29.7%] h-[29.7%] rounded-full bg-transparent border-none cursor-pointer z-20 outline-none"></button>
         </div>
         <div id="spin-instruction"
-          class="spin-instruction mt-8 text-3xl font-extrabold animate-pulse-slow text-text dark:text-gray-100 transition-all">
+          class="spin-instruction mt-4 lg:mt-8 text-xl sm:text-2xl lg:text-3xl font-extrabold animate-pulse-slow text-text dark:text-gray-100 transition-all text-center">
           Click center to SPIN!</div>
       </section>
 
-      <!-- Tab Content (Tailwind Refactored) -->
-      <section class="settings-panel flex-1 min-w-[380px] hidden flex-col open:flex gap-4">
+      <!-- Tab Content (Settings Panel) -->
+      <section class="settings-panel flex-1 lg:min-w-[380px] flex flex-col gap-4">
 
         <div id="tab-names" class="tab-content active transition-all duration-300">
           <div
-            class="glass p-8 rounded-radius border border-white/20 dark:border-white/10 shadow-xl bg-white/80 dark:bg-white/5 backdrop-blur-xl animate-in fade-in slide-in-from-bottom-5">
+            class="glass p-6 lg:p-8 rounded-radius border border-white/20 dark:border-white/10 shadow-xl bg-white/80 dark:bg-white/5 backdrop-blur-xl animate-in fade-in slide-in-from-bottom-5">
             <h3
               class="mb-6 pb-3 text-2xl font-bold border-b-2 border-gray-200 dark:border-white/20 transition-colors text-text dark:text-white">
               Manage Names</h3>
             <textarea id="names-input"
               class="w-full p-4 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 text-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all text-text dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
-              placeholder="Enter names, one per line…" rows="12"></textarea>
+              placeholder="Enter names, one per line…" rows="10"></textarea>
           </div>
         </div>
 
         <div id="tab-image" class="tab-content transition-all duration-300">
           <div
-            class="glass p-8 rounded-radius border border-white/20 dark:border-white/10 shadow-xl bg-white/80 dark:bg-white/5 backdrop-blur-xl">
+            class="glass p-6 lg:p-8 rounded-radius border border-white/20 dark:border-white/10 shadow-xl bg-white/80 dark:bg-white/5 backdrop-blur-xl">
             <h3
               class="mb-6 pb-3 text-2xl font-bold border-b-2 border-gray-200 dark:border-white/20 transition-colors text-text dark:text-white">
               Center Image</h3>
@@ -163,7 +210,7 @@
 
         <div id="tab-sounds" class="tab-content transition-all duration-300">
           <div
-            class="glass p-8 rounded-radius border border-white/20 dark:border-white/10 shadow-xl bg-white/80 dark:bg-white/5 backdrop-blur-xl">
+            class="glass p-6 lg:p-8 rounded-radius border border-white/20 dark:border-white/10 shadow-xl bg-white/80 dark:bg-white/5 backdrop-blur-xl">
             <h3
               class="mb-6 pb-3 text-2xl font-bold border-b-2 border-gray-200 dark:border-white/20 transition-colors text-text dark:text-white">
               Sound Effects</h3>
@@ -216,7 +263,7 @@
 
         <div id="tab-display" class="tab-content transition-all duration-300">
           <div
-            class="glass p-8 rounded-radius border border-white/20 dark:border-white/10 shadow-xl bg-white/80 dark:bg-white/5 backdrop-blur-xl">
+            class="glass p-6 lg:p-8 rounded-radius border border-white/20 dark:border-white/10 shadow-xl bg-white/80 dark:bg-white/5 backdrop-blur-xl">
             <h3
               class="mb-6 pb-3 text-2xl font-bold border-b-2 border-gray-200 dark:border-white/20 transition-colors text-text dark:text-white">
               Display Settings</h3>
@@ -246,31 +293,31 @@
 
     <!-- Winner Toast (Dynamic Notification) -->
     <div id="winner-toast"
-      class="winner-toast fixed top-[100px] left-1/2 -translate-x-1/2 -translate-y-[20px] bg-white dark:bg-orbit-dark-surface p-6 px-10 rounded-radius border border-primary/50 dark:border-primary/30 shadow-2xl z-1000 flex flex-col items-center gap-6 opacity-0 pointer-events-none transition-all duration-500 backdrop-blur-2xl">
+      class="winner-toast fixed top-[80px] left-1/2 -translate-x-1/2 -translate-y-[20px] w-[92vw] max-w-[520px] bg-white dark:bg-orbit-dark-surface p-5 lg:p-6 px-6 lg:px-10 rounded-radius border border-primary/50 dark:border-primary/30 shadow-2xl z-1000 flex flex-col items-center gap-5 opacity-0 pointer-events-none transition-all duration-500 backdrop-blur-2xl">
       <div class="winner-info text-center">
         <h2 id="winner-text"
-          class="text-4xl font-extrabold bg-primary-gradient bg-clip-text text-transparent animate-bounce"></h2>
+          class="text-3xl lg:text-4xl font-extrabold bg-primary-gradient bg-clip-text text-transparent animate-bounce"></h2>
       </div>
-      <div class="winner-actions flex gap-4">
+      <div class="winner-actions flex flex-wrap justify-center gap-3">
         <button id="remove-one-btn"
-          class="px-6 py-2.5 rounded-lg border border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary font-bold transition-all hover:scale-105 active:scale-95">Remove
+          class="px-5 py-2.5 rounded-lg border border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary font-bold transition-all hover:scale-105 active:scale-95">Remove
           this</button>
         <button id="remove-all-btn"
-          class="px-6 py-2.5 rounded-lg bg-red-600 text-white font-bold shadow-lg shadow-red-600/30 hover:bg-red-700 hover:shadow-xl hover:shadow-red-600/40 transition-all hover:scale-105 active:scale-95">Remove
+          class="px-5 py-2.5 rounded-lg bg-red-600 text-white font-bold shadow-lg shadow-red-600/30 hover:bg-red-700 hover:shadow-xl hover:shadow-red-600/40 transition-all hover:scale-105 active:scale-95">Remove
           all</button>
         <button id="close-toast-btn"
-          class="px-6 py-2.5 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-text-muted dark:text-gray-300 font-bold transition-all hover:border-text-muted dark:hover:border-gray-400 hover:scale-105 active:scale-95">Close</button>
+          class="px-5 py-2.5 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-text-muted dark:text-gray-300 font-bold transition-all hover:border-text-muted dark:hover:border-gray-400 hover:scale-105 active:scale-95">Close</button>
       </div>
     </div>
 
     <!-- Gallery Modal -->
     <div id="gallery-modal"
-      class="gallery-modal hidden fixed inset-0 bg-black/60 backdrop-blur-md z-2000 flex justify-center items-center p-8 transition-opacity duration-300">
+      class="gallery-modal hidden fixed inset-0 bg-black/60 backdrop-blur-md z-2000 flex justify-center items-center p-0 sm:p-8 transition-opacity duration-300">
       <div
-        class="gallery-modal-content bg-white dark:bg-orbit-dark-surface w-full max-w-[900px] max-h-[85vh] rounded-radius p-8 flex flex-col shadow-2xl animate-in zoom-in-95 duration-300 relative border border-white/20 dark:border-white/10 transition-colors">
+        class="gallery-modal-content bg-white dark:bg-orbit-dark-surface w-full h-full sm:h-auto sm:max-h-[85vh] sm:max-w-[900px] rounded-none sm:rounded-radius p-5 sm:p-8 flex flex-col shadow-2xl animate-in zoom-in-95 duration-300 relative border-0 sm:border border-white/20 dark:border-white/10 transition-colors">
         <div
           class="gallery-modal-header flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-          <h3 class="text-3xl font-extrabold text-text dark:text-gray-100 transition-colors">Select an Image</h3>
+          <h3 class="text-2xl lg:text-3xl font-extrabold text-text dark:text-gray-100 transition-colors">Select an Image</h3>
           <div class="search-container flex w-full md:w-auto gap-2 flex-1 max-w-md">
             <input type="text" id="gallery-search-input" placeholder="Search topics (e.g. dogs, clouds)..."
               class="flex-1 p-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 text-text dark:text-white focus:outline-none focus:ring-2 focus:ring-primary transition-all" />
@@ -280,10 +327,10 @@
             </button>
           </div>
           <button id="gallery-close-btn"
-            class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-white/10 text-2xl text-text-muted dark:text-gray-400 transition-all">✕</button>
+            class="absolute top-4 right-4 sm:relative sm:top-auto sm:right-auto w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-white/10 text-2xl text-text-muted dark:text-gray-400 transition-all">✕</button>
         </div>
         <div id="gallery-grid"
-          class="flex-1 overflow-y-auto grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-6 mb-8 pr-2 custom-scrollbar">
+          class="flex-1 overflow-y-auto grid grid-cols-[repeat(auto-fill,minmax(130px,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-4 sm:gap-6 mb-6 sm:mb-8 pr-2 custom-scrollbar">
         </div>
         <button id="gallery-load-more"
           class="w-full p-4 rounded-radius-sm border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 font-bold hover:border-primary hover:text-primary transition-all">Load
@@ -293,19 +340,19 @@
 
     <!-- Error Banner -->
     <div id="error-banner"
-      class="error-banner fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 scale-90 bg-danger/95 backdrop-blur-xl p-6 px-10 rounded-radius border border-white/20 shadow-2xl z-3000 flex items-center gap-6 text-white opacity-0 pointer-events-none transition-all duration-400">
-      <div class="error-content flex items-center gap-4">
-        <span class="error-icon text-3xl">💀</span>
-        <span id="error-message" class="text-lg font-bold"></span>
+      class="error-banner fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 scale-90 bg-danger/95 backdrop-blur-xl p-5 px-6 lg:p-6 lg:px-10 rounded-radius border border-white/20 shadow-2xl z-3000 flex items-center gap-4 lg:gap-6 text-white opacity-0 pointer-events-none transition-all duration-400 w-[92vw] max-w-[520px]">
+      <div class="error-content flex items-center gap-4 flex-1 min-w-0">
+        <span class="error-icon text-3xl shrink-0">💀</span>
+        <span id="error-message" class="text-base lg:text-lg font-bold break-words"></span>
       </div>
       <button id="close-error-btn"
-        class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/20 text-white transition-all text-xl">✕</button>
+        class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/20 text-white transition-all text-xl shrink-0">✕</button>
     </div>
 
     <!-- Footer -->
     <footer
-      class="footer py-8 px-8 mt-auto bg-white/40 dark:bg-black/40 backdrop-blur-md border-t border-white/20 dark:border-white/10 transition-all">
-      <div class="max-w-[1400px] mx-auto w-full flex flex-col md:flex-row justify-between items-center gap-6">
+      class="footer py-6 lg:py-8 px-4 lg:px-8 mt-auto bg-white/40 dark:bg-black/40 backdrop-blur-md border-t border-white/20 dark:border-white/10 transition-all">
+      <div class="max-w-[1400px] mx-auto w-full flex flex-col md:flex-row justify-between items-center gap-4 lg:gap-6">
         <div class="footer-left">
           <p class="text-text-muted dark:text-gray-400 font-semibold">© 2026 Orbit.</p>
         </div>

@@ -36,8 +36,6 @@ const state = {
   hasEverSpun: false,
   defaultCenterImage: null,
 
-
-
   // Methods that need to be accessed by modules
   drawWheel: () => drawWheel(state, dom),
   generateColors: (count, palette) => generateColors(count, palette),
@@ -60,31 +58,90 @@ function syncNamesUI() {
 
 /**
  * Sets up the theme switcher event listeners and active state.
+ * Handles both desktop (#theme-switcher) and mobile (#theme-switcher-mobile).
  */
 function setupThemeSwitcher() {
-  if (!dom.themeSwitcher) return;
-  const buttons = dom.themeSwitcher.querySelectorAll('button');
+  const switchers = [
+    document.getElementById('theme-switcher'),
+    document.getElementById('theme-switcher-mobile')
+  ].filter(Boolean);
+
   const activeTheme = getTheme();
 
-  const updateActiveButton = (theme) => {
-    buttons.forEach(btn => {
-      if (btn.getAttribute('data-theme-value') === theme) {
-        btn.classList.add('active');
-      } else {
-        btn.classList.remove('active');
-      }
+  const updateActiveButtons = (theme) => {
+    switchers.forEach(switcher => {
+      switcher.querySelectorAll('button').forEach(btn => {
+        if (btn.getAttribute('data-theme-value') === theme) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
     });
   };
 
-  updateActiveButton(activeTheme);
+  updateActiveButtons(activeTheme);
 
-  buttons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const theme = btn.getAttribute('data-theme-value');
-      applyTheme(theme);
-      updateActiveButton(theme);
+  switchers.forEach(switcher => {
+    switcher.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const theme = btn.getAttribute('data-theme-value');
+        applyTheme(theme);
+        updateActiveButtons(theme);
+      });
     });
   });
+}
+
+/**
+ * Sets up the hamburger button to toggle the mobile nav drawer.
+ */
+function setupHamburger() {
+  const menuBtn = document.getElementById('nav-menu-btn');
+  const drawer = document.getElementById('nav-drawer');
+  if (!menuBtn || !drawer) return;
+
+  menuBtn.addEventListener('click', () => {
+    const isOpen = drawer.classList.contains('open');
+    if (isOpen) {
+      closeDrawer();
+    } else {
+      drawer.classList.add('open');
+      menuBtn.setAttribute('aria-expanded', 'true');
+    }
+  });
+
+  // Close drawer when a tab is clicked (mobile)
+  drawer.querySelectorAll('.tab-link').forEach(link => {
+    link.addEventListener('click', () => closeDrawer());
+  });
+
+  // Close drawer on resize to desktop
+  window.addEventListener('resize', () => {
+    if (window.innerWidth >= 1024) closeDrawer();
+  });
+
+  function closeDrawer() {
+    drawer.classList.remove('open');
+    menuBtn.setAttribute('aria-expanded', 'false');
+  }
+}
+
+/**
+ * Resizes the canvas to match the actual pixel size of its wrapper,
+ * then redraws the wheel. Called on init and debounced on resize.
+ */
+function resizeCanvas() {
+  const wrapper = document.getElementById('wheel-wrapper');
+  const canvas = document.getElementById('wheel');
+  if (!wrapper || !canvas) return;
+
+  const size = wrapper.clientWidth;
+  if (size > 0 && (canvas.width !== size || canvas.height !== size)) {
+    canvas.width = size;
+    canvas.height = size;
+    state.drawWheel();
+  }
 }
 
 /**
@@ -133,8 +190,30 @@ function init() {
   populateSoundDropdowns(dom);
   setupTabs();
   setupThemeSwitcher();
+  setupHamburger();
 
   state.colors = generateColors(state.names.length, state.currentWheelPalette);
+
+  // Resize canvas to wrapper size before first draw
+  resizeCanvas();
+
+  // Also listen for window resize (debounced)
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(resizeCanvas, 100);
+  });
+
+  // Use ResizeObserver for wrapper changes (e.g., settings panel toggling)
+  if (typeof ResizeObserver !== 'undefined') {
+    const wrapper = document.getElementById('wheel-wrapper');
+    if (wrapper) {
+      new ResizeObserver(() => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(resizeCanvas, 50);
+      }).observe(wrapper);
+    }
+  }
 
   // Preload default center image
   const sunImg = new Image();
@@ -152,20 +231,6 @@ function init() {
   dom.namesInput.addEventListener('input', () => {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => updateNames(state, dom), 300);
-  });
-
-  // Global click listener to close settings when clicking outside
-  document.addEventListener('click', (e) => {
-    const settingsPanel = document.querySelector('.settings-panel');
-    if (!settingsPanel) return;
-    if (!settingsPanel.classList.contains('open')) return;
-    const isClickInside = settingsPanel.contains(e.target);
-    const isClickOnTab = e.target.closest('.tab-link');
-    if (!isClickInside && !isClickOnTab) {
-      settingsPanel.classList.remove('open');
-      settingsPanel.style.display = 'none';
-      document.querySelectorAll('.tab-link').forEach(l => l.classList.remove('active'));
-    }
   });
 
   setupAutoApply(state, dom);

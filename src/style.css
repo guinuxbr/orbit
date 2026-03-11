@@ -52,17 +52,46 @@ body {
   transition: background-image 0.5s ease;
 }
 
-#theme-switcher button.active {
+/* ==========================================
+   Hamburger button animation
+   ========================================== */
+#nav-menu-btn[aria-expanded="true"] .hamburger-line:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+#nav-menu-btn[aria-expanded="true"] .hamburger-line:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+#nav-menu-btn[aria-expanded="true"] .hamburger-line:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+/* ==========================================
+   Mobile nav drawer
+   ========================================== */
+.nav-drawer.open {
+  max-height: 400px;
+}
+
+/* ==========================================
+   Theme switcher
+   ========================================== */
+#theme-switcher button.active,
+#theme-switcher-mobile button.active {
   background-color: white;
   color: var(--color-primary);
   transform: scale(1.1);
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
 }
 
-.dark #theme-switcher button.active {
+.dark #theme-switcher button.active,
+.dark #theme-switcher-mobile button.active {
   background-color: rgba(255, 255, 255, 0.2);
 }
 
+/* ==========================================
+   Tab system
+   ========================================== */
 .tab-content {
   display: none;
 }
@@ -80,6 +109,21 @@ body {
   outline: 4px solid rgba(0, 164, 137, 0.3);
 }
 
+/* On mobile, reset the scale on active tab-links to avoid layout shift on full-width buttons */
+@media (max-width: 1023px) {
+  .tab-link.active {
+    transform: none;
+  }
+
+  /* Settings panel always visible on mobile */
+  .settings-panel {
+    display: flex !important;
+  }
+}
+
+/* ==========================================
+   Winner toast
+   ========================================== */
 .winner-toast.visible {
   opacity: 1;
   translate: -50% 0;
@@ -96,6 +140,9 @@ body {
   -webkit-text-fill-color: transparent;
 }
 
+/* ==========================================
+   Error banner
+   ========================================== */
 .error-banner.visible {
   opacity: 1;
   translate: -50% -50%;
@@ -103,10 +150,16 @@ body {
   pointer-events: auto;
 }
 
+/* ==========================================
+   Wheel canvas
+   ========================================== */
 #wheel {
   transition: transform 0.1s linear;
 }
 
+/* ==========================================
+   Gallery
+   ========================================== */
 .gallery-item {
   width: 100%;
   aspect-ratio: 1/1;
@@ -131,6 +184,9 @@ body {
   box-shadow: 0 0 0 4px rgba(0, 164, 137, 0.3);
 }
 
+/* ==========================================
+   Footer
+   ========================================== */
 .footer {
   box-shadow: 0 -4px 6px -1px rgb(0 0 0 / 0.1), 0 -2px 4px -2px rgb(0 0 0 / 0.1);
 }
