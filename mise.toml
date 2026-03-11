@@ -1,7 +1,23 @@
-[tasks.build]
+[tasks.compose-up]
 description = "Build the project"
 run = "docker compose down && docker compose build && docker compose up -d --force-recreate"
 
-[tasks.destroy]
+[tasks.compose-down]
 description = "Destroy the project"
 run = "docker compose down && docker container rm orbit && docker network rm orbit_default"
+
+[tasks.dev]
+description = "Run the project"
+run = "npm run dev"
+
+[tasks.build]
+description = "Build the project"
+run = "npm run build"
+
+[tasks.test]
+description = "Test the project"
+run = "npm run test"
+
+[tasks.preview]
+description = "Preview the project"
+run = "npm run preview"
