@@ -1,15 +1,24 @@
-// ============================================
-// theme.js — Auto / Light / Dark theme manager
-// ============================================
+/**
+ * @file theme.js
+ * @description Manages application-level color scheme (Light, Dark, and Auto/System).
+ */
 
+/**
+ * localStorage key for the system theme preference.
+ * @type {string}
+ */
 const STORAGE_KEY = 'orbit-theme';
+
+/** @type {MediaQueryList|null} */
 let mediaQueryList = null;
+
+/** @type {Function|null} */
 let mediaQueryListener = null;
 
 /**
  * Initializes the theme on application load.
- * Retrieves saved theme or defaults to 'auto'.
- * @returns {string} The active theme value.
+ * Retrieves saved theme from storage or defaults to 'auto'.
+ * @returns {string} The active theme string.
  */
 export function initTheme() {
     const saved = localStorage.getItem(STORAGE_KEY) || 'auto';
@@ -18,9 +27,8 @@ export function initTheme() {
 }
 
 /**
- * Applies a theme ('light', 'dark', or 'auto') to the document.
- * If 'auto' is selected, it listens for system preference changes.
- * @param {string} theme - The theme to apply.
+ * Applies a theme to the document and manages system preference listeners.
+ * @param {'light'|'dark'|'auto'} theme - The theme to apply.
  */
 export function applyTheme(theme) {
     localStorage.setItem(STORAGE_KEY, theme);
@@ -38,8 +46,9 @@ export function applyTheme(theme) {
         // Setup listener for system 'prefers-color-scheme' changes
         mediaQueryList = window.matchMedia('(prefers-color-scheme: dark)');
 
-        const applySystem = (e) => {
-            const systemTheme = e.matches ? 'dark' : 'light';
+        /** @param {MediaQueryListEvent|MediaQueryList} event */
+        const applySystem = (event) => {
+            const systemTheme = event.matches ? 'dark' : 'light';
             document.documentElement.setAttribute('data-theme', systemTheme);
         };
 
@@ -57,7 +66,7 @@ export function applyTheme(theme) {
 }
 
 /**
- * Returns the currently configured theme value from localStorage.
+ * Retrieves the currently configured theme preference.
  * @returns {string} The theme value ('light', 'dark', or 'auto').
  */
 export function getTheme() {

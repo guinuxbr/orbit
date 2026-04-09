@@ -1,6 +1,7 @@
-// ============================================
-// main.js — Orbit (Refactored)
-// ============================================
+/**
+ * @file main.js
+ * @description Main application orchestrator. Handles state management, event wiring, and lifecycle initialization.
+ */
 
 import { initTheme, applyTheme, getTheme } from './theme.js';
 import { INITIAL_NAMES } from './constants.js';
@@ -9,6 +10,7 @@ import { openGallery, loadGalleryImages, searchGallery } from './gallery.js';
 import { initGravityEffect } from './gravity.js';
 import { generateColors, drawWheel, loadImageFromURL, clearImage, handleImageUpload } from './wheel.js';
 import { spinWheel, removeWinnerOnce, removeWinnerAll, updateNames } from './spin.js';
+import { saveConfig, loadConfig, clearConfig } from './persistence.js';
 import {
   setupTabs,
   setupUITheme,
@@ -19,34 +21,59 @@ import {
   setupAutoApply
 } from './ui.js';
 
-// ---- State & DOM ----
+/**
+ * Global application state object.
+ * Contains configuration, animation handles, and shared methods.
+ * @namespace
+ */
 const state = {
+  /** @type {string[]} List of names currently on the wheel */
   names: [...INITIAL_NAMES],
+  /** @type {string[]} Colors corresponding to each name segment */
   colors: [],
+  /** @type {number} Current rotation angle of the wheel in radians */
   startAngle: 0,
+  /** @type {boolean} Whether background particles should move at high speed */
   isSpinning: false,
+  /** @type {boolean} Whether the wheel itself is currently animating a spin */
   isSpinningWheel: false,
+  /** @type {number|null} requestAnimationFrame ID for the current spin */
   animationId: null,
+  /** @type {HTMLImageElement|null} The current loaded center image object */
   centerImage: null,
+  /** @type {string|null} Source URL of the center image (persisted) */
+  centerImageUrl: null,
+  /** @type {boolean} Whether the center image is used as a wheel-wide background */
   useImageAsBackground: false,
+  /** @type {string|null} Name of the most recent winner */
   lastWinner: null,
+  /** @type {number} Current page for gallery API pagination */
   galleryPage: 1,
+  /** @type {string[]} Color palette assigned to the wheel segments */
   currentWheelPalette: [],
+  /** @type {Object[]} Active particle objects for the gravity background */
   particles: [],
+  /** @type {boolean} Tracks if the wheel has ever been spun by the user */
   hasEverSpun: false,
+  /** @type {HTMLImageElement|null} Default fallback logo for the center hub */
   defaultCenterImage: null,
 
-  // Methods that need to be accessed by modules
+  // Shared methods linked to specific context-aware implementations
   drawWheel: () => drawWheel(state, dom),
   generateColors: (count, palette) => generateColors(count, palette),
   syncNamesUI: () => syncNamesUI(),
   loadImageFromURL: (url) => loadImageFromURL(url, state)
 };
 
+/**
+ * Global dictionary of DOM element references.
+ * Populated during the init() call.
+ */
 const dom = {};
 
 /**
- * Synchronizes the names from the array back to the textarea UI.
+ * Synchronizes the internal names array back to the textarea UI.
+ * Triggers a redraw and a persistence save.
  */
 function syncNamesUI() {
   state.colors = generateColors(state.names.length, state.currentWheelPalette);
@@ -54,11 +81,19 @@ function syncNamesUI() {
   dom.winnerToast.classList.remove('visible');
   state.lastWinner = null;
   state.drawWheel();
+  save();
 }
 
 /**
- * Sets up the theme switcher event listeners and active state.
- * Handles both desktop (#theme-switcher) and mobile (#theme-switcher-mobile).
+ * Central wrapper for state persistence.
+ */
+function save() {
+  saveConfig(state, dom);
+}
+
+/**
+ * Initializes and wires theme switcher buttons (Light/Dark/Auto).
+ * Handles both desktop and mobile navigation variants.
  */
 function setupThemeSwitcher() {
   const switchers = [
@@ -68,6 +103,7 @@ function setupThemeSwitcher() {
 
   const activeTheme = getTheme();
 
+  /** Updates the visual "active" class on the switcher buttons */
   const updateActiveButtons = (theme) => {
     switchers.forEach(switcher => {
       switcher.querySelectorAll('button').forEach(btn => {
@@ -85,16 +121,17 @@ function setupThemeSwitcher() {
   switchers.forEach(switcher => {
     switcher.querySelectorAll('button').forEach(btn => {
       btn.addEventListener('click', () => {
-        const theme = btn.getAttribute('data-theme-value');
-        applyTheme(theme);
-        updateActiveButtons(theme);
+        const themeValue = btn.getAttribute('data-theme-value');
+        applyTheme(themeValue);
+        updateActiveButtons(themeValue);
+        save();
       });
     });
   });
 }
 
 /**
- * Sets up the hamburger button to toggle the mobile nav drawer.
+ * Initializes the mobile hamburger menu and drawer interactions.
  */
 function setupHamburger() {
   const menuBtn = document.getElementById('nav-menu-btn');
@@ -111,12 +148,12 @@ function setupHamburger() {
     }
   });
 
-  // Close drawer when a tab is clicked (mobile)
+  // Close drawer when a navigation link is clicked
   drawer.querySelectorAll('.tab-link').forEach(link => {
     link.addEventListener('click', () => closeDrawer());
   });
 
-  // Close drawer on resize to desktop
+  // Ensure drawer closes if the window is resized to desktop width
   window.addEventListener('resize', () => {
     if (window.innerWidth >= 1024) closeDrawer();
   });
@@ -128,8 +165,8 @@ function setupHamburger() {
 }
 
 /**
- * Resizes the canvas to match the actual pixel size of its wrapper,
- * then redraws the wheel. Called on init and debounced on resize.
+ * Adjusts the canvas resolution to match its displayed element size.
+ * Essential for maintaining correct aspect ratios and sharpness.
  */
 function resizeCanvas() {
   const wrapper = document.getElementById('wheel-wrapper');
@@ -145,12 +182,13 @@ function resizeCanvas() {
 }
 
 /**
- * Main initialization entry point.
+ * Application entry point. Executes on DOMContentLoaded.
+ * Performs DOM mapping, state restoration, and multi-module initialization.
  */
 function init() {
-  // DOM References
+  // --- DOM Mapping ---
   dom.canvas = document.getElementById('wheel');
-  dom.ctx = dom.canvas.getContext('2d');
+  dom.context = dom.canvas.getContext('2d');
   dom.spinBtn = document.getElementById('spin-btn');
   dom.namesInput = document.getElementById('names-input');
   dom.spinInstruction = document.getElementById('spin-instruction');
@@ -183,69 +221,118 @@ function init() {
 
   dom.namesInput.value = state.names.join('\n');
 
-  initTheme(); // System theme (Auto/Light/Dark)
-  setupUITheme(state); // Color palette theme
-  initGravityEffect(state, dom); // Initialize gravity particle effect
-  setupVolume(dom);
-  populateSoundDropdowns(dom);
-  setupTabs();
-  setupThemeSwitcher();
-  setupHamburger();
+  // Redefine the gallery-accessible loadImageFromURL wrapper to include save(),
+  // now that save() is properly closed over state and dom.
+  state.loadImageFromURL = (url) => loadImageFromURL(url, state, save);
 
+  // --- Core Lifecycle Init ---
+  initTheme(); // Set system theme preference (Auto/Light/Dark)
+  setupUITheme(state); // Setup UI color palette
+  initGravityEffect(state, dom); // Start background particle animation
+  setupVolume(dom); // Wire audio volume slider
+  populateSoundDropdowns(dom); // Fill music/SFX menus
+  setupTabs(); // Initialize side panel tab logic
+  setupThemeSwitcher(); // Wire nav theme buttons
+  setupHamburger(); // Wire mobile menu
+
+  // --- Configuration Restoration ---
+  const saved = loadConfig();
+  if (saved) {
+    if (Array.isArray(saved.names) && saved.names.length > 0) {
+      state.names = saved.names;
+      dom.namesInput.value = state.names.join('\n');
+    }
+    if (saved.uiTheme) {
+      const themeSelector = document.getElementById('ui-theme-select');
+      if (themeSelector) themeSelector.value = saved.uiTheme;
+      applyUITheme(saved.uiTheme, state);
+    }
+    if (saved.spinDuration && dom.spinDurationInput) dom.spinDurationInput.value = saved.spinDuration;
+    if (saved.winnerMessage && dom.winnerMessageInput) dom.winnerMessageInput.value = saved.winnerMessage;
+    if (saved.volume && dom.volumeSlider) {
+      dom.volumeSlider.value = saved.volume;
+      if (dom.volumeValue) dom.volumeValue.textContent = `${saved.volume}%`;
+    }
+    if (saved.spinningSound && dom.spinningSoundSelect) dom.spinningSoundSelect.value = saved.spinningSound;
+    if (saved.winnerSound && dom.winnerSoundSelect) dom.winnerSoundSelect.value = saved.winnerSound;
+    if (saved.imageBg != null && dom.imageBgToggle) {
+      dom.imageBgToggle.checked = Boolean(saved.imageBg);
+      state.useImageAsBackground = Boolean(saved.imageBg);
+    }
+    if (saved.imageSize && dom.imageSizeSelect) dom.imageSizeSelect.value = saved.imageSize;
+    if (saved.lightDarkTheme) applyTheme(saved.lightDarkTheme);
+    
+    // Asynchronous image restoration
+    if (saved.centerImageUrl) {
+      loadImageFromURL(saved.centerImageUrl, state, save);
+    }
+  }
+
+  // Pre-generate segment colors for the initial draw
   state.colors = generateColors(state.names.length, state.currentWheelPalette);
 
-  // Resize canvas to wrapper size before first draw
+  // Layout synchronization
   resizeCanvas();
 
-  // Also listen for window resize (debounced)
-  let resizeTimer;
+  let canvasResizeTimer;
   window.addEventListener('resize', () => {
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(resizeCanvas, 100);
+    clearTimeout(canvasResizeTimer);
+    canvasResizeTimer = setTimeout(resizeCanvas, 100);
   });
 
-  // Use ResizeObserver for wrapper changes (e.g., settings panel toggling)
+  // Observe wrapper size changes (e.g., side panel opening/closing) to adjust canvas resolution
   if (typeof ResizeObserver !== 'undefined') {
     const wrapper = document.getElementById('wheel-wrapper');
     if (wrapper) {
       new ResizeObserver(() => {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(resizeCanvas, 50);
+        clearTimeout(canvasResizeTimer);
+        canvasResizeTimer = setTimeout(resizeCanvas, 50);
       }).observe(wrapper);
     }
   }
 
-  // Preload default center image
-  const sunImg = new Image();
-  sunImg.onload = () => {
-    state.defaultCenterImage = sunImg;
+  // Load default center hub logo
+  const defaultLogoImage = new Image();
+  defaultLogoImage.onload = () => {
+    state.defaultCenterImage = defaultLogoImage;
     state.drawWheel();
   };
-  sunImg.src = '/img/sun_icon.png';
+  defaultLogoImage.src = '/img/sun_icon.png';
 
   state.drawWheel();
 
+  // --- Primary Event Wiring ---
   dom.spinBtn.addEventListener('click', () => spinWheel(state, dom));
 
-  let debounceTimer;
+  let namesDebounceTimer;
   dom.namesInput.addEventListener('input', () => {
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => updateNames(state, dom), 300);
+    clearTimeout(namesDebounceTimer);
+    namesDebounceTimer = setTimeout(() => {
+      updateNames(state, dom);
+      save();
+    }, 300);
   });
 
-  setupAutoApply(state, dom);
+  setupAutoApply(state, dom, save);
 
-  dom.customMusicInput.addEventListener('change', (e) => handleCustomSound(e, 'music', dom));
-  dom.customSfxInput.addEventListener('change', (e) => handleCustomSound(e, 'sfx', dom));
+  // Volume: setupVolume drives audio - this listener ensures persistence
+  dom.volumeSlider.addEventListener('input', () => save());
 
-  dom.centerImageInput.addEventListener('change', (e) => handleImageUpload(e, state));
-  dom.clearImageBtn.addEventListener('click', () => clearImage(state, dom));
+  dom.customMusicInput.addEventListener('change', (event) => handleCustomSound(event, 'music', dom));
+  dom.customSfxInput.addEventListener('change', (event) => handleCustomSound(event, 'sfx', dom));
 
-  dom.imageSizeSelect.addEventListener('change', () => state.drawWheel());
+  dom.centerImageInput.addEventListener('change', (event) => handleImageUpload(event, state, save));
+  dom.clearImageBtn.addEventListener('click', () => { clearImage(state, dom); save(); });
+
+  dom.imageSizeSelect.addEventListener('change', () => {
+    state.drawWheel();
+    save();
+  });
 
   dom.imageBgToggle.addEventListener('change', () => {
     state.useImageAsBackground = dom.imageBgToggle.checked;
     state.drawWheel();
+    save();
   });
 
   if (dom.browseGalleryBtn) dom.browseGalleryBtn.addEventListener('click', () => openGallery(state, dom));
@@ -254,18 +341,42 @@ function init() {
 
   if (dom.gallerySearchBtn) dom.gallerySearchBtn.addEventListener('click', () => searchGallery(state, dom));
   if (dom.gallerySearchInput) {
-    dom.gallerySearchInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') searchGallery(state, dom);
+    dom.gallerySearchInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') searchGallery(state, dom);
     });
   }
 
-  dom.removeOneBtn.addEventListener('click', () => removeWinnerOnce(state));
-  dom.removeAllBtn.addEventListener('click', () => removeWinnerAll(state));
+  dom.removeOneBtn.addEventListener('click', () => { removeWinnerOnce(state); save(); });
+  dom.removeAllBtn.addEventListener('click', () => { removeWinnerAll(state); save(); });
   dom.closeToastBtn.addEventListener('click', () => dom.winnerToast.classList.remove('visible'));
 
+  // --- Reset Workflow (Custom Modal) ---
+  const resetModal    = document.getElementById('reset-modal');
+  const resetCancel   = document.getElementById('reset-modal-cancel');
+  const resetConfirm  = document.getElementById('reset-modal-confirm');
+
+  const openResetModal  = () => resetModal?.classList.remove('hidden');
+  const closeResetModal = () => resetModal?.classList.add('hidden');
+
+  ['reset-config-btn', 'reset-config-btn-mobile'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (btn) btn.addEventListener('click', openResetModal);
+  });
+
+  if (resetCancel)  resetCancel.addEventListener('click', closeResetModal);
+  if (resetModal)   resetModal.addEventListener('click', (event) => { if (event.target === resetModal) closeResetModal(); });
+  document.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeResetModal(); });
+
+  if (resetConfirm) {
+    resetConfirm.addEventListener('click', () => {
+      clearConfig();
+      location.reload();
+    });
+  }
+
   if (dom.galleryModal) {
-    dom.galleryModal.addEventListener('click', (e) => {
-      if (e.target === dom.galleryModal) dom.galleryModal.classList.add('hidden');
+    dom.galleryModal.addEventListener('click', (event) => {
+      if (event.target === dom.galleryModal) dom.galleryModal.classList.add('hidden');
     });
   }
 
@@ -273,4 +384,5 @@ function init() {
   if (closeErrorBtn) closeErrorBtn.addEventListener('click', hideError);
 }
 
+// Start the application
 window.addEventListener('DOMContentLoaded', init);

@@ -1,5 +1,14 @@
-// src/gravity.js
+/**
+ * @file gravity.js
+ * @description Background particle animation system and idle wheel rotation.
+ */
 
+/**
+ * Creates a single particle object for the gravity background effect.
+ * @param {number} width - Canvas or window width.
+ * @param {number} height - Canvas or window height.
+ * @returns {Object} Particle properties (position, size, speed, orbit).
+ */
 export function createParticle(width, height) {
     return {
         x: Math.random() * width,
@@ -13,71 +22,68 @@ export function createParticle(width, height) {
     };
 }
 
+/**
+ * Main animation loop for the background particles and idle wheel rotation.
+ * @param {Object} state - The global application state.
+ * @param {Object} dom - Global dictionary of DOM element references.
+ */
 export function animateGravity(state, dom) {
-    const { gravityCtx, gravityCanvas } = dom;
-    if (!gravityCtx || !gravityCanvas) return;
+    const { gravityContext, gravityCanvas } = dom;
+    if (!gravityContext || !gravityCanvas) return;
 
-    gravityCtx.clearRect(0, 0, gravityCanvas.width, gravityCanvas.height);
+    gravityContext.clearRect(0, 0, gravityCanvas.width, gravityCanvas.height);
 
     const centerX = gravityCanvas.width / 2;
     const centerY = gravityCanvas.height / 2;
 
-    // Primary color for particles, pulled from CSS variable
     const rootStyle = getComputedStyle(document.documentElement);
-    let pColor = rootStyle.getPropertyValue('--color-primary').trim() || '#00a489';
+    let primaryColor = rootStyle.getPropertyValue('--color-primary').trim() || '#00a489';
 
-    gravityCtx.fillStyle = pColor;
+    gravityContext.fillStyle = primaryColor;
 
-    // Speed multiplier based on wheel spin state
     const speedMultiplier = state.isSpinning ? 15 : 1;
 
-    for (let p of state.particles) {
-        // Determine the center offset
-        const dx = centerX - p.x;
-        const dy = centerY - p.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
+    for (let particle of state.particles) {
+        const deltaX = centerX - particle.x;
+        const deltaY = centerY - particle.y;
+        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
 
-        // Gravity vector towards center
-        // let forceDirectionX = dx / distance;
-        // let forceDirectionY = dy / distance;
+        particle.angle += particle.baseSpeed * speedMultiplier;
 
-        // Calculate orbital motion 
-        p.angle += p.baseSpeed * speedMultiplier;
+        particle.x = centerX + Math.cos(particle.angle) * particle.orbitRadius;
+        particle.y = centerY + Math.sin(particle.angle) * particle.orbitRadius;
 
-        // Instead of free-floating, let's make them loosely orbit the center
-        // Some drift is allowed
-        p.x = centerX + Math.cos(p.angle) * p.orbitRadius;
-        p.y = centerY + Math.sin(p.angle) * p.orbitRadius;
+        gravityContext.beginPath();
+        gravityContext.arc(particle.x, particle.y, particle.size * (state.isSpinning ? 1.5 : 1), 0, Math.PI * 2);
+        gravityContext.fill();
 
-        // Draw particle
-        gravityCtx.beginPath();
-        gravityCtx.arc(p.x, p.y, p.size * (state.isSpinning ? 1.5 : 1), 0, Math.PI * 2);
-        gravityCtx.fill();
-
-        // Optional: draw faint line to center if close enough and spinning
         if (state.isSpinning && distance < 400) {
-            gravityCtx.beginPath();
-            gravityCtx.moveTo(p.x, p.y);
-            gravityCtx.lineTo(centerX, centerY);
-            gravityCtx.strokeStyle = `${pColor}10`; // Very transparent
-            gravityCtx.stroke();
+            gravityContext.beginPath();
+            gravityContext.moveTo(particle.x, particle.y);
+            gravityContext.lineTo(centerX, centerY);
+            gravityContext.strokeStyle = `${primaryColor}10`;
+            gravityContext.stroke();
         }
     }
 
-    // Idle wheel rotation - only before the first user spin
     if (!state.isSpinningWheel && !state.hasEverSpun) {
-        state.startAngle += 0.0015; // Slower idle speed
+        state.startAngle += 0.0015;
         state.drawWheel();
     }
 
     requestAnimationFrame(() => animateGravity(state, dom));
 }
 
+/**
+ * Initializes the background canvas, creates particles, and starts the animation loop.
+ * @param {Object} state - The global application state.
+ * @param {Object} dom - Global dictionary of DOM element references.
+ */
 export function initGravityEffect(state, dom) {
     dom.gravityCanvas = document.getElementById('gravity-canvas');
     if (!dom.gravityCanvas) return;
 
-    dom.gravityCtx = dom.gravityCanvas.getContext('2d');
+    dom.gravityContext = dom.gravityCanvas.getContext('2d');
 
     function resizeGravityCanvas() {
         if (!dom.gravityCanvas) return;
@@ -85,16 +91,13 @@ export function initGravityEffect(state, dom) {
         dom.gravityCanvas.height = window.innerHeight;
     }
 
-    // Resize canvas to window size
     window.addEventListener('resize', resizeGravityCanvas);
     resizeGravityCanvas();
 
-    // Create initial particles (150 * 1.25 = 188)
     state.particles = [];
-    for (let i = 0; i < 188; i++) {
+    for (let particleIndex = 0; particleIndex < 188; particleIndex++) {
         state.particles.push(createParticle(window.innerWidth, window.innerHeight));
     }
 
-    // Start animation loop
     requestAnimationFrame(() => animateGravity(state, dom));
 }
