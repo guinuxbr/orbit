@@ -238,7 +238,8 @@ function init() {
   
   // --- Version Information ---
   if (dom.versionDisplay) {
-    dom.versionDisplay.innerHTML = `v${__APP_VERSION__} (<a href="https://github.com/guinuxbr/orbit/commit/${__COMMIT_HASH__}" target="_blank" rel="noopener noreferrer" class="hover:text-primary transition-colors">${__COMMIT_HASH__}</a>, ${__BUILD_DATE__})`;
+    const releaseUrl = `https://github.com/guinuxbr/orbit/releases/tag/v${__APP_VERSION__}`;
+    dom.versionDisplay.innerHTML = `<a href="${releaseUrl}" target="_blank" rel="noopener noreferrer" class="hover:text-primary transition-colors">v${__APP_VERSION__}</a> (<a href="${releaseUrl}" target="_blank" rel="noopener noreferrer" class="hover:text-primary transition-colors">${__COMMIT_HASH__}</a>, ${__BUILD_DATE__})`;
   }
 
   // --- Configuration Restoration ---
