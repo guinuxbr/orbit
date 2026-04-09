@@ -210,6 +210,7 @@ function init() {
   dom.customMusicInput = document.getElementById('custom-music-input');
   dom.customSfxInput = document.getElementById('custom-sfx-input');
   dom.imageBgToggle = document.getElementById('image-bg-toggle');
+  dom.versionDisplay = document.getElementById('version-display');
 
   dom.galleryModal = document.getElementById('gallery-modal');
   dom.galleryCloseBtn = document.getElementById('gallery-close-btn');
@@ -234,6 +235,11 @@ function init() {
   setupTabs(); // Initialize side panel tab logic
   setupThemeSwitcher(); // Wire nav theme buttons
   setupHamburger(); // Wire mobile menu
+  
+  // --- Version Information ---
+  if (dom.versionDisplay) {
+    dom.versionDisplay.innerHTML = `v${__APP_VERSION__} (<a href="https://github.com/guinuxbr/orbit/commit/${__COMMIT_HASH__}" target="_blank" rel="noopener noreferrer" class="hover:text-primary transition-colors">${__COMMIT_HASH__}</a>, ${__BUILD_DATE__})`;
+  }
 
   // --- Configuration Restoration ---
   const saved = loadConfig();
