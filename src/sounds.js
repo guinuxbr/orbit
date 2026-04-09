@@ -1,8 +1,12 @@
-// ============================================
-// sounds.js — Audio Manager with lazy-loaded real MP3 files
-// ============================================
+/**
+ * @file sounds.js
+ * @description Audio manager handling lazy-loaded music and SFX tracks.
+ */
 
-// Track catalogs
+/**
+ * Catalog of available music tracks.
+ * @type {Array<{id: string, label: string, file: string}>}
+ */
 export const musicTracks = [
     { id: 'abyssal_annihilation', label: 'Abyssal Annihilation', file: '/audio/music/abyssal_annihilation.mp3' },
     { id: 'annihilation_protocol', label: 'Annihilation Protocol', file: '/audio/music/annihilation_protocol.mp3' },
@@ -18,6 +22,10 @@ export const musicTracks = [
     { id: 'whispers_on_the_water', label: 'Whispers on the Water', file: '/audio/music/whispers_on_the_water.mp3' },
 ];
 
+/**
+ * Catalog of available sound effect tracks.
+ * @type {Array<{id: string, label: string, file: string}>}
+ */
 export const sfxTracks = [
     { id: 'cat_meowing', label: 'Cat Meowing', file: '/audio/sfx/cat_meowing.mp3' },
     { id: 'crowd_cheering', label: 'Crowd Cheering', file: '/audio/sfx/crowd_cheering.mp3' },
@@ -31,14 +39,46 @@ export const sfxTracks = [
     { id: 'wake_up', label: 'Wake Up', file: '/audio/sfx/wake_up.mp3' },
 ];
 
-// Audio cache — lazy-loaded
+/**
+ * Audio element cache for lazy-loading.
+ * @type {Map<string, HTMLAudioElement>}
+ * @private
+ */
 const audioCache = new Map();
+
+/**
+ * Global volume state (normalized 0.0 to 1.0).
+ * @type {number}
+ * @private
+ */
+let currentVolume = 0.5;
+
+/**
+ * Reference to the currently playing music track audio element.
+ * @type {HTMLAudioElement|null}
+ * @private
+ */
+let currentMusic = null;
+
+/**
+ * Tracking for last random selections to avoid sequence repetition.
+ * @type {string|null}
+ * @private
+ */
+let lastRandomMusicId = null;
+
+/**
+ * @type {string|null}
+ * @private
+ */
+let lastRandomSfxId = null;
 
 /**
  * Retrieves or creates an Audio object for the given file path.
  * Implements lazy-loading by caching audio elements.
  * @param {string} filePath - The path to the audio file or a Blob URL.
  * @returns {HTMLAudioElement} The audio element.
+ * @private
  */
 function getAudio(filePath) {
     if (!audioCache.has(filePath)) {
@@ -48,9 +88,6 @@ function getAudio(filePath) {
     }
     return audioCache.get(filePath);
 }
-
-// Global volume state (0.0 to 1.0)
-let currentVolume = 0.5;
 
 /**
  * Sets the global volume and updates all cached audio elements.
@@ -65,14 +102,11 @@ export function setVolume(value) {
 
 /**
  * Gets the current global volume.
- * @returns {number} The current volume.
+ * @returns {number} The current volume (0.0 to 1.0).
  */
 export function getVolume() {
     return currentVolume;
 }
-
-// Reference to the currently playing music track
-let currentMusic = null;
 
 /**
  * Plays a music track by ID. Stops any currently playing music.
@@ -81,7 +115,7 @@ let currentMusic = null;
  */
 export function playMusic(trackId) {
     stopMusic();
-    const track = musicTracks.find(t => t.id === trackId);
+    const track = musicTracks.find(trackItem => trackItem.id === trackId);
     if (!track) return;
 
     const audio = getAudio(track.file);
@@ -108,7 +142,7 @@ export function stopMusic() {
  * @param {string} sfxId - The ID of the SFX to play.
  */
 export function playSfx(sfxId) {
-    const track = sfxTracks.find(t => t.id === sfxId);
+    const track = sfxTracks.find(trackItem => trackItem.id === sfxId);
     if (!track) return;
 
     const audio = getAudio(track.file);
@@ -118,14 +152,10 @@ export function playSfx(sfxId) {
     audio.play().catch(() => { });
 }
 
-// Tracking for last random selections to avoid sequence repetition
-let lastRandomMusicId = null;
-let lastRandomSfxId = null;
-
 /**
  * Picks a random music track ID from the catalog.
  * Ensures the same track is not played twice in a row.
- * @returns {string} A random music track ID.
+ * @returns {string|null} A random music track ID or null if list is empty.
  */
 export function getRandomMusicId() {
     if (musicTracks.length <= 1) {
@@ -143,7 +173,7 @@ export function getRandomMusicId() {
 /**
  * Picks a random SFX ID from the catalog.
  * Ensures the same track is not played twice in a row.
- * @returns {string} A random SFX ID.
+ * @returns {string|null} A random SFX ID or null if list is empty.
  */
 export function getRandomSfxId() {
     if (sfxTracks.length <= 1) {
@@ -160,11 +190,14 @@ export function getRandomSfxId() {
 
 /**
  * Dynamically adds a custom track to the music or SFX catalog.
- * @param {string} type - Either 'music' or 'sfx'.
- * @param {Object} trackObj - The track configuration object.
+ * @param {'music'|'sfx'} type - The category of the track.
+ * @param {Object} trackObject - The track configuration object.
+ * @param {string} trackObject.id - Unique identifier for the track.
+ * @param {string} trackObject.label - Display label for the track.
+ * @param {string} trackObject.file - Source URL or Blob for the audio file.
  */
-export function addCustomTrack(type, trackObj) {
+export function addCustomTrack(type, trackObject) {
     const list = type === 'music' ? musicTracks : sfxTracks;
-    list.push(trackObj);
+    list.push(trackObject);
 }
 

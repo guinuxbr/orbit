@@ -1,8 +1,16 @@
-// src/ui.js
+/**
+ * @file ui.js
+ * @description UI interaction logic, tab management, and dynamic theme synchronization.
+ */
+
 import { UI_THEMES } from './constants.js';
 import { setVolume, musicTracks, sfxTracks, addCustomTrack } from './sounds.js';
 import { validateFile } from './utils.js';
 
+/**
+ * Initializes the settings panel tab system.
+ * Handles opening/closing the side panel and toggling active tab states.
+ */
 export function setupTabs() {
     const settingsPanel = document.querySelector('.settings-panel');
     const links = document.querySelectorAll('.tab-link');
@@ -15,11 +23,12 @@ export function setupTabs() {
             const isActive = link.classList.contains('active');
             const isPanelOpen = settingsPanel.classList.contains('open');
 
+            // If clicking the current active tab, toggle the side panel visibility
             if (isActive) {
                 if (isPanelOpen) {
                     settingsPanel.classList.remove('open');
                     settingsPanel.style.display = 'none';
-                    links.forEach(l => l.classList.remove('active'));
+                    links.forEach(innerLink => innerLink.classList.remove('active'));
                 } else {
                     settingsPanel.classList.add('open');
                     settingsPanel.style.display = 'flex';
@@ -27,8 +36,9 @@ export function setupTabs() {
                 return;
             }
 
-            links.forEach(l => l.classList.remove('active'));
-            contents.forEach(c => c.classList.remove('active'));
+            // Otherwise, switch to the new tab and ensure panel is open
+            links.forEach(innerLink => innerLink.classList.remove('active'));
+            contents.forEach(content => content.classList.remove('active'));
 
             link.classList.add('active');
             if (targetContent) targetContent.classList.add('active');
@@ -38,14 +48,19 @@ export function setupTabs() {
     });
 }
 
+/**
+ * Applies a specific UI color palette by updating CSS variables and internal state.
+ * @param {string} themeId - ID of the theme to apply (see constants.js).
+ * @param {Object} state - Global application state.
+ */
 export function applyUITheme(themeId, state) {
-    const theme = UI_THEMES.find(t => t.id === themeId) || UI_THEMES[0];
-    localStorage.setItem('orbit-ui-theme', themeId);
+    const theme = UI_THEMES.find(themeItem => themeItem.id === themeId) || UI_THEMES[0];
 
     const root = document.documentElement;
-    // Update CSS variables for dynamic background
+    
+    // Update CSS variables used for the background gradient and primary branding
     root.style.setProperty('--bg-gradient', `radial-gradient(at 0% 0%, ${theme.primary} 0, transparent 50%),
-                 radial-gradient(at 50% 0%, ${theme.sec} 0, transparent 50%),
+                 radial-gradient(at 50% 0%, ${theme.secondary} 0, transparent 50%),
                  radial-gradient(at 100% 0%, ${theme.accent} 0, transparent 50%)`);
 
     root.style.setProperty('--color-primary', theme.primary);
@@ -54,57 +69,76 @@ export function applyUITheme(themeId, state) {
     const shadowColor = theme.primary + '66';
     root.style.setProperty('--color-primary-shadow', shadowColor);
 
-    // Update segments palette
-    state.currentWheelPalette = [theme.primary, theme.sec, theme.accent, theme.primary, theme.sec, theme.accent];
+    // Update segments palette for the wheel
+    state.currentWheelPalette = [theme.primary, theme.secondary, theme.accent, theme.primary, theme.secondary, theme.accent];
 }
 
+/**
+ * Populates the UI theme selector and loads the saved preference.
+ * @param {Object} state - Global application state.
+ */
 export function setupUITheme(state) {
     const uiThemeSelect = document.getElementById('ui-theme-select');
     const savedThemeId = localStorage.getItem('orbit-ui-theme') || 'teal';
 
     UI_THEMES.forEach(theme => {
-        const opt = document.createElement('option');
-        opt.value = theme.id;
-        opt.textContent = theme.label;
-        uiThemeSelect.appendChild(opt);
+        const option = document.createElement('option');
+        option.value = theme.id;
+        option.textContent = theme.label;
+        uiThemeSelect.appendChild(option);
     });
 
     uiThemeSelect.value = savedThemeId;
     applyUITheme(savedThemeId, state);
 }
 
+/**
+ * Attaches listeners to the volume slider to update internal and UI volume state.
+ * @param {Object} dom - Global dictionary of DOM element references.
+ */
 export function setupVolume(dom) {
     const { volumeSlider, volumeValue } = dom;
     if (!volumeSlider) return;
     volumeSlider.addEventListener('input', () => {
-        const val = parseInt(volumeSlider.value);
-        volumeValue.textContent = `${val}%`;
-        setVolume(val / 100);
+        const volumeValue = parseInt(volumeSlider.value);
+        dom.volumeValue.textContent = `${volumeValue}%`;
+        setVolume(volumeValue / 100);
     });
 }
 
+/**
+ * Fills music and SFX dropdown menus from the sound catalog.
+ * @param {Object} dom - Global dictionary of DOM element references.
+ */
 export function populateSoundDropdowns(dom) {
     const { spinningSoundSelect, winnerSoundSelect } = dom;
     if (!spinningSoundSelect || !winnerSoundSelect) return;
-    // Populate spinning sounds
+    
+    // Populate spinning sounds catalog
     musicTracks.forEach(track => {
-        const opt = document.createElement('option');
-        opt.value = track.id;
-        opt.textContent = track.label;
-        spinningSoundSelect.appendChild(opt);
+        const option = document.createElement('option');
+        option.value = track.id;
+        option.textContent = track.label;
+        spinningSoundSelect.appendChild(option);
     });
 
-    // Populate winner sounds
+    // Populate victory sound effects catalog
     sfxTracks.forEach(track => {
-        const opt = document.createElement('option');
-        opt.value = track.id;
-        opt.textContent = track.label;
-        winnerSoundSelect.appendChild(opt);
+        const option = document.createElement('option');
+        option.value = track.id;
+        option.textContent = track.label;
+        winnerSoundSelect.appendChild(option);
     });
 }
 
-export function handleCustomSound(e, type, dom) {
-    const file = e.target.files[0];
+/**
+ * Processes a custom audio file upload, adds it to the catalog, and selects it.
+ * @param {Event} e - Input change event.
+ * @param {'music'|'sfx'} type - Track category.
+ * @param {Object} dom - Global dictionary of DOM element references.
+ */
+export function handleCustomSound(event, type, dom) {
+    const file = event.target.files?.[0];
     if (!file) return;
 
     const isValid = validateFile(file, {
@@ -114,7 +148,7 @@ export function handleCustomSound(e, type, dom) {
     });
 
     if (!isValid) {
-        e.target.value = '';
+        event.target.value = '';
         return;
     }
 
@@ -123,15 +157,22 @@ export function handleCustomSound(e, type, dom) {
     const label = `📂 ${file.name}`;
 
     addCustomTrack(type, { id, label, file: url, isBlob: true });
+    
     const select = type === 'music' ? dom.spinningSoundSelect : dom.winnerSoundSelect;
-    const opt = document.createElement('option');
-    opt.value = id;
-    opt.textContent = label;
-    select.appendChild(opt);
+    const option = document.createElement('option');
+    option.value = id;
+    option.textContent = label;
+    select.appendChild(option);
     select.value = id;
 }
 
-export function setupAutoApply(state, dom) {
+/**
+ * Sets up "auto-apply" listeners for settings inputs to trigger immediate wheel updates and saves.
+ * @param {Object} state - Global application state.
+ * @param {Object} dom - Global dictionary of DOM element references.
+ * @param {Function} [onSave] - Callback triggered to persist changes to storage.
+ */
+export function setupAutoApply(state, dom, onSave) {
     const inputs = [
         document.getElementById('ui-theme-select'),
         document.getElementById('spin-duration'),
@@ -149,6 +190,8 @@ export function setupAutoApply(state, dom) {
                 state.colors = state.generateColors(state.names.length, state.currentWheelPalette);
                 state.drawWheel();
             }
+            // Persist settings changes immediately
+            if (typeof onSave === 'function') onSave();
         };
         input.addEventListener('input', triggerUpdate);
         if (input.tagName === 'SELECT') {

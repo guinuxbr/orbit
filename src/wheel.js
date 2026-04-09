@@ -1,177 +1,224 @@
-// src/wheel.js
+/**
+ * @file wheel.js
+ * @description Core canvas rendering for the wheel, segment coloring, and center image management.
+ */
+
 import { PALETTE } from './constants.js';
 import { validateFile } from './utils.js';
 
+/**
+ * Generates an array of colors for the wheel segments based on the current palette.
+ * @param {number} count - Number of segments to color.
+ * @param {string[]} currentWheelPalette - Custom palette to use (falls back to defaults).
+ * @returns {string[]} Array of color strings.
+ */
 export function generateColors(count, currentWheelPalette) {
     const result = [];
     const palette = currentWheelPalette.length > 0 ? currentWheelPalette : PALETTE;
-    for (let i = 0; i < count; i++) {
-        result.push(palette[i % palette.length]);
+    for (let segmentIndex = 0; segmentIndex < count; segmentIndex++) {
+        result.push(palette[segmentIndex % palette.length]);
     }
     return result;
 }
 
+/**
+ * Calculates an optimal font size for wheel segment labels.
+ *
+ * @param {number} count - Number of segments in the wheel.
+ * @param {number} outerRadius - Outer radius of the wheel in pixels.
+ * @param {number} innerRadius - Inner radius (hub) of the wheel in pixels.
+ * @returns {number} The calculated font size in pixels.
+ */
+export function calculateFontSize(count, outerRadius, innerRadius) {
+    const MIN_FONT_SIZE = 10;
+    const MAX_FONT_SIZE = 56;
+
+    if (count === 0) return MAX_FONT_SIZE;
+
+    const segmentArc = (Math.PI * 2) / count;
+
+    const arcChordHeight = 2 * outerRadius * Math.sin(segmentArc / 2);
+    const verticalBudget = arcChordHeight * 0.75;
+
+    const radialDepth = outerRadius - innerRadius - 20;
+    const CHARS_ESTIMATE = 8;
+    const CHAR_WIDTH_RATIO = 0.6;
+    const horizontalBudget = (radialDepth * 0.90) / (CHARS_ESTIMATE * CHAR_WIDTH_RATIO);
+
+    const fontSize = Math.min(verticalBudget, horizontalBudget);
+
+    return Math.min(MAX_FONT_SIZE, Math.max(MIN_FONT_SIZE, fontSize));
+}
+
+/**
+ * Main draw call that renders the wheel segments, text labels, and center hub/image.
+ * @param {Object} state - Global application state.
+ * @param {Object} dom - Global dictionary of DOM element references.
+ */
 export function drawWheel(state, dom) {
-    const { canvas, ctx, imageSizeSelect } = dom;
+    const { canvas, context, imageSizeSelect } = dom;
     const { names, colors, startAngle, useImageAsBackground, centerImage } = state;
 
-    const W = canvas.width;
-    const H = canvas.height;
-    const cx = W / 2;
-    const cy = H / 2;
-    const outerR = (Math.min(W, H) / 2) - 10;
-    const innerR = parseInt(imageSizeSelect.value) || 110;
+    const canvasWidth = canvas.width;
+    const canvasHeight = canvas.height;
+    const centerX = canvasWidth / 2;
+    const centerY = canvasHeight / 2;
+    const outerRadius = (Math.min(canvasWidth, canvasHeight) / 2) - 10;
+    const innerRadius = parseInt(imageSizeSelect.value) || 110;
 
-    ctx.clearRect(0, 0, W, H);
+    context.clearRect(0, 0, canvasWidth, canvasHeight);
 
-    // If names is empty, we still draw the outer ring and center hub
     if (names.length === 0) {
-        ctx.beginPath();
-        ctx.arc(cx, cy, outerR, 0, Math.PI * 2);
-        ctx.strokeStyle = 'rgba(255,255,255,0.6)';
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
+        context.beginPath();
+        context.arc(centerX, centerY, outerRadius, 0, Math.PI * 2);
+        context.strokeStyle = 'rgba(255,255,255,0.6)';
+        context.lineWidth = 1.5;
+        context.stroke();
 
-        // Draw central hub
-        ctx.beginPath();
-        ctx.arc(cx, cy, innerR, 0, Math.PI * 2);
-        ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-surface').trim() || '#fff';
-        ctx.fill();
-        ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim() || '#6c5ce7';
-        ctx.lineWidth = 4;
-        ctx.stroke();
+        context.beginPath();
+        context.arc(centerX, centerY, innerRadius, 0, Math.PI * 2);
+        context.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-surface').trim() || '#fff';
+        context.fill();
+        context.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim() || '#6c5ce7';
+        context.lineWidth = 4;
+        context.stroke();
 
-        // Draw center icon
         if (state.defaultCenterImage) {
-            ctx.save();
-            ctx.beginPath();
-            ctx.arc(cx, cy, innerR - 4, 0, Math.PI * 2);
-            ctx.clip();
-            ctx.translate(cx, cy);
-            const iconSize = (innerR - 4) * 2;
-            ctx.drawImage(state.defaultCenterImage, -iconSize / 2, -iconSize / 2, iconSize, iconSize);
-            ctx.restore();
-
+            context.save();
+            context.beginPath();
+            context.arc(centerX, centerY, innerRadius - 4, 0, Math.PI * 2);
+            context.clip();
+            context.translate(centerX, centerY);
+            const iconSize = (innerRadius - 4) * 2;
+            context.drawImage(state.defaultCenterImage, -iconSize / 2, -iconSize / 2, iconSize, iconSize);
+            context.restore();
         }
         return;
     }
 
-    const arc = (Math.PI * 2) / names.length;
+    const segmentArc = (Math.PI * 2) / names.length;
     const isImageBackground = useImageAsBackground && centerImage;
 
-    // Draw background image if enabled
     if (isImageBackground) {
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(cx, cy, outerR, 0, Math.PI * 2);
-        ctx.clip();
+        context.save();
+        context.beginPath();
+        context.arc(centerX, centerY, outerRadius, 0, Math.PI * 2);
+        context.clip();
 
-        // Rotate the background image with the wheel
-        ctx.translate(cx, cy);
-        ctx.rotate(startAngle);
-        ctx.translate(-cx, -cy);
+        context.translate(centerX, centerY);
+        context.rotate(startAngle);
+        context.translate(-centerX, -centerY);
 
-        const imgSize = outerR * 2;
-        ctx.drawImage(centerImage, cx - outerR, cy - outerR, imgSize, imgSize);
-        ctx.restore();
+        const imageDisplaySize = outerRadius * 2;
+        context.drawImage(centerImage, centerX - outerRadius, centerY - outerRadius, imageDisplaySize, imageDisplaySize);
+        context.restore();
     }
 
-    for (let i = 0; i < names.length; i++) {
-        const angle = startAngle + i * arc;
+    for (let segmentIndex = 0; segmentIndex < names.length; segmentIndex++) {
+        const angle = startAngle + segmentIndex * segmentArc;
 
-        // Draw individual segment only if NOT using image background
         if (!isImageBackground) {
-            ctx.beginPath();
-            ctx.moveTo(cx, cy);
-            ctx.arc(cx, cy, outerR, angle, angle + arc);
-            ctx.closePath();
-            ctx.fillStyle = colors[i] || '#ccc';
-            ctx.fill();
-            ctx.strokeStyle = 'rgba(255,255,255,0.6)';
-            ctx.lineWidth = 1.5;
-            ctx.stroke();
+            context.beginPath();
+            context.moveTo(centerX, centerY);
+            context.arc(centerX, centerY, outerRadius, angle, angle + segmentArc);
+            context.closePath();
+            context.fillStyle = colors[segmentIndex] || '#ccc';
+            context.fill();
+            context.strokeStyle = 'rgba(255,255,255,0.6)';
+            context.lineWidth = 1.5;
+            context.stroke();
         }
 
-        // Draw segment text
-        ctx.save();
-        ctx.translate(cx, cy);
-        ctx.rotate(angle + arc / 2);
+        context.save();
+        context.translate(centerX, centerY);
+        context.rotate(angle + segmentArc / 2);
 
-        const maxTextWidth = (outerR - innerR - 20);
-        let fontSize = Math.min(35, Math.max(18, 350 / names.length));
-        ctx.font = `600 ${fontSize}px 'Outfit', sans-serif`;
+        const maxTextWidth = (outerRadius - innerRadius - 20);
+        const fontSize = calculateFontSize(names.length, outerRadius, innerRadius);
+        context.font = `600 ${fontSize}px 'Outfit', sans-serif`;
 
-        let text = names[i];
-        while (ctx.measureText(text).width > maxTextWidth && text.length > 3) {
+        let text = names[segmentIndex];
+        while (context.measureText(text).width > maxTextWidth && text.length > 3) {
             text = text.slice(0, -1);
         }
-        if (text !== names[i]) text += '…';
+        if (text !== names[segmentIndex]) text += '…';
 
         if (isImageBackground) {
-            ctx.fillStyle = '#ffffff';
-            // Add text shadow for maximum readability on arbitrary images
-            ctx.shadowColor = 'rgba(0,0,0,1)';
-            ctx.shadowBlur = 8;
-            ctx.shadowOffsetX = 2;
-            ctx.shadowOffsetY = 2;
+            context.fillStyle = '#ffffff';
+            context.shadowColor = 'rgba(0,0,0,1)';
+            context.shadowBlur = 8;
+            context.shadowOffsetX = 2;
+            context.shadowOffsetY = 2;
         } else {
-            ctx.fillStyle = '#1a1a2e';
+            context.fillStyle = '#1a1a2e';
         }
 
-        ctx.textAlign = 'right';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(text, outerR - 15, 0);
-        ctx.restore();
+        context.textAlign = 'right';
+        context.textBaseline = 'middle';
+        context.fillText(text, outerRadius - 15, 0);
+        context.restore();
     }
 
-    // Draw central hub and icon only if NOT using image background
     if (!isImageBackground) {
-        ctx.beginPath();
-        ctx.arc(cx, cy, innerR, 0, Math.PI * 2);
-        ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-surface').trim() || '#fff';
-        ctx.fill();
-        ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim() || '#6c5ce7';
-        ctx.lineWidth = 4;
-        ctx.stroke();
+        context.beginPath();
+        context.arc(centerX, centerY, innerRadius, 0, Math.PI * 2);
+        context.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-surface').trim() || '#fff';
+        context.fill();
+        context.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim() || '#6c5ce7';
+        context.lineWidth = 4;
+        context.stroke();
 
-        // Draw center icon or chosen center image
         if (centerImage) {
-            ctx.save();
-            ctx.beginPath();
-            ctx.arc(cx, cy, innerR - 4, 0, Math.PI * 2);
-            ctx.clip();
-            ctx.translate(cx, cy);
-            ctx.rotate(startAngle);
-            ctx.translate(-cx, -cy);
-            const imgSize = (innerR - 4) * 2;
-            ctx.drawImage(centerImage, cx - innerR + 4, cy - innerR + 4, imgSize, imgSize);
-            ctx.restore();
+            context.save();
+            context.beginPath();
+            context.arc(centerX, centerY, innerRadius - 4, 0, Math.PI * 2);
+            context.clip();
+            context.translate(centerX, centerY);
+            context.rotate(startAngle);
+            context.translate(-centerX, -centerY);
+            const imageDisplaySize = (innerRadius - 4) * 2;
+            context.drawImage(centerImage, centerX - innerRadius + 4, centerY - innerRadius + 4, imageDisplaySize, imageDisplaySize);
+            context.restore();
         } else if (state.defaultCenterImage) {
-            ctx.save();
-            ctx.beginPath();
-            ctx.arc(cx, cy, innerR - 4, 0, Math.PI * 2);
-            ctx.clip();
-            ctx.translate(cx, cy);
-            ctx.rotate(startAngle);
-            const iconSize = (innerR - 4) * 2;
-            ctx.drawImage(state.defaultCenterImage, -iconSize / 2, -iconSize / 2, iconSize, iconSize);
-            ctx.restore();
+            context.save();
+            context.beginPath();
+            context.arc(centerX, centerY, innerRadius - 4, 0, Math.PI * 2);
+            context.clip();
+            context.translate(centerX, centerY);
+            context.rotate(startAngle);
+            const iconSize = (innerRadius - 4) * 2;
+            context.drawImage(state.defaultCenterImage, -iconSize / 2, -iconSize / 2, iconSize, iconSize);
+            context.restore();
         }
     }
 }
 
-export function loadImageFromURL(url, state) {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = function () {
-        state.centerImage = img;
+/**
+ * Asynchronously loads an image from a URL and updates the wheel.
+ * @param {string} url - Source URL or Data URL.
+ * @param {Object} state - Global application state.
+ * @param {Function} [onLoad] - Optional callback triggered after successful load.
+ */
+export function loadImageFromURL(url, state, onLoad) {
+    const image = new Image();
+    image.crossOrigin = 'anonymous';
+    image.onload = function () {
+        state.centerImage = image;
+        state.centerImageUrl = url;
         state.drawWheel();
+        if (typeof onLoad === 'function') onLoad();
     };
-    img.src = url;
+    image.src = url;
 }
 
-export function handleImageUpload(e, state) {
-    const file = e.target.files[0];
+/**
+ * Handles the local file upload event for the wheel image.
+ * @param {Event} event - Input change event.
+ * @param {Object} state - Global application state.
+ * @param {Function} [onLoad] - Optional callback passed to loadImageFromURL.
+ */
+export function handleImageUpload(event, state, onLoad) {
+    const file = event.target.files?.[0];
     if (!file) return;
 
     const isValid = validateFile(file, {
@@ -181,19 +228,25 @@ export function handleImageUpload(e, state) {
     });
 
     if (!isValid) {
-        e.target.value = '';
+        event.target.value = '';
         return;
     }
 
     const reader = new FileReader();
-    reader.onload = function (event) {
-        loadImageFromURL(event.target.result, state);
+    reader.onload = function (readerEvent) {
+        loadImageFromURL(readerEvent.target.result, state, onLoad);
     };
     reader.readAsDataURL(file);
 }
 
+/**
+ * Removes the current custom center image and reverts to the default icon.
+ * @param {Object} state - Global application state.
+ * @param {Object} dom - Global dictionary of DOM element references.
+ */
 export function clearImage(state, dom) {
     state.centerImage = null;
-    dom.centerImageInput.value = '';
+    state.centerImageUrl = null;
+    if (dom.centerImageInput) dom.centerImageInput.value = '';
     state.drawWheel();
 }
