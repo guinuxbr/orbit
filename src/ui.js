@@ -9,12 +9,32 @@ import { validateFile } from './utils.js';
 
 /**
  * Initializes the settings panel tab system.
- * Handles opening/closing the side panel and toggling active tab states.
+ * The panel is a fixed right-side drawer driven by CSS translateX transition.
+ * Clicking a tab opens it; clicking the same active tab closes it.
  */
 export function setupTabs() {
     const settingsPanel = document.querySelector('.settings-panel');
     const links = document.querySelectorAll('.tab-link');
     const contents = document.querySelectorAll('.tab-content');
+
+    /** Close the panel and reset all active states */
+    function closePanel() {
+        settingsPanel.classList.remove('open');
+        links.forEach(link => link.classList.remove('active'));
+        contents.forEach(content => content.classList.remove('active'));
+    }
+
+    /** Open the panel */
+    function openPanel() {
+        settingsPanel.classList.add('open');
+    }
+
+    // Handle close button
+    const closeBtn = document.getElementById('close-settings-btn');
+    if (closeBtn) closeBtn.addEventListener('click', closePanel);
+
+    // Close on Escape key
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closePanel(); });
 
     links.forEach(link => {
         link.addEventListener('click', () => {
@@ -23,27 +43,19 @@ export function setupTabs() {
             const isActive = link.classList.contains('active');
             const isPanelOpen = settingsPanel.classList.contains('open');
 
-            // If clicking the current active tab, toggle the side panel visibility
-            if (isActive) {
-                if (isPanelOpen) {
-                    settingsPanel.classList.remove('open');
-                    settingsPanel.style.display = 'none';
-                    links.forEach(innerLink => innerLink.classList.remove('active'));
-                } else {
-                    settingsPanel.classList.add('open');
-                    settingsPanel.style.display = 'flex';
-                }
+            // Clicking the already-active tab while open → close
+            if (isActive && isPanelOpen) {
+                closePanel();
                 return;
             }
 
-            // Otherwise, switch to the new tab and ensure panel is open
+            // Switch tab and open panel
             links.forEach(innerLink => innerLink.classList.remove('active'));
             contents.forEach(content => content.classList.remove('active'));
 
             link.classList.add('active');
             if (targetContent) targetContent.classList.add('active');
-            settingsPanel.classList.add('open');
-            settingsPanel.style.display = 'flex';
+            openPanel();
         });
     });
 }

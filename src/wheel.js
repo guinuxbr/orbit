@@ -64,7 +64,13 @@ export function drawWheel(state, dom) {
     const centerX = canvasWidth / 2;
     const centerY = canvasHeight / 2;
     const outerRadius = (Math.min(canvasWidth, canvasHeight) / 2) - 10;
-    const innerRadius = parseInt(imageSizeSelect.value) || 110;
+    
+    let innerRadiusRatio = parseFloat(imageSizeSelect.value) || 0.30;
+    if (innerRadiusRatio > 1) {
+        // Fallback for legacy static pixel values (normalized to typical desktop radius of 450)
+        innerRadiusRatio = Math.min(innerRadiusRatio / 450, 0.8);
+    }
+    const innerRadius = outerRadius * innerRadiusRatio;
 
     context.clearRect(0, 0, canvasWidth, canvasHeight);
 

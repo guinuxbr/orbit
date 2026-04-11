@@ -298,14 +298,6 @@ function init() {
     }
   }
 
-  // Load default center hub logo
-  const defaultLogoImage = new Image();
-  defaultLogoImage.onload = () => {
-    state.defaultCenterImage = defaultLogoImage;
-    state.drawWheel();
-  };
-  defaultLogoImage.src = '/img/sun_icon.png';
-
   state.drawWheel();
 
   // --- Primary Event Wiring ---

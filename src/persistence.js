@@ -26,7 +26,7 @@ export function saveConfig(state, dom) {
             spinningSound: dom.spinningSoundSelect?.value || 'random',
             winnerSound: dom.winnerSoundSelect?.value || 'random',
             imageBg: dom.imageBgToggle?.checked || false,
-            imageSize: dom.imageSizeSelect?.value || '138',
+            imageSize: dom.imageSizeSelect?.value || '0.30',
             // Center image URL (data URL for uploads, remote URL for gallery picks)
             centerImageUrl: state.centerImageUrl || null,
         };
