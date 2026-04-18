@@ -279,6 +279,14 @@
                 class="w-full p-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 text-text dark:text-white" />
             </div>
             <div class="mb-6">
+              <label for="spin-speed" class="block mb-2 font-bold text-text-muted dark:text-white">Spin Speed</label>
+              <div class="flex items-center gap-4">
+                <input type="range" id="spin-speed" min="1" max="5" value="3" step="1"
+                  class="flex-1 accent-primary h-2 bg-gray-200 dark:bg-white/10 rounded-lg appearance-none cursor-pointer" />
+                <span id="spin-speed-value" class="min-w-[70px] font-bold text-text dark:text-white text-right">Medium</span>
+              </div>
+            </div>
+            <div class="mb-6">
               <label for="winner-message" class="block mb-2 font-bold text-text-muted dark:text-white">Winner Toast Text</label>
               <input type="text" id="winner-message" value="{name} wins!" placeholder="Use {name} template variable"
                 class="w-full p-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 text-text dark:text-white" />

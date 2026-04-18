@@ -7,15 +7,19 @@ import { readFileSync } from 'node:fs';
 const packageJson = JSON.parse(readFileSync('./package.json', 'utf-8'));
 const version = packageJson.version;
 
-// Get git information for the current build
-let commitHash = 'unknown';
-let buildDate = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+// Get git information for the current build.
+// Inside Docker builds, .git is excluded from the context so we fall back
+// to VITE_* env vars that are injected as ARGs in the Dockerfile.
+let commitHash = process.env.VITE_COMMIT_HASH ?? 'unknown';
+let buildDate = process.env.VITE_BUILD_DATE ?? new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 
 try {
   commitHash = execSync('git rev-parse --short HEAD').toString().trim();
   buildDate = execSync('git log -1 --format=%ad --date=format:"%d %b %Y"').toString().trim();
-} catch (error) {
-  console.warn('[orbit] Could not retrieve git information for versioning.');
+} catch {
+  if (commitHash === 'unknown') {
+    console.warn('[orbit] Could not retrieve git information for versioning.');
+  }
 }
 
 export default defineConfig({

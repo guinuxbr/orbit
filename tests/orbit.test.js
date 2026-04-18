@@ -32,7 +32,7 @@ describe('Constants', () => {
             expect(theme).toHaveProperty('id');
             expect(theme).toHaveProperty('label');
             expect(theme).toHaveProperty('primary');
-            expect(theme).toHaveProperty('sec');
+            expect(theme).toHaveProperty('secondary');
             expect(theme).toHaveProperty('accent');
         });
     });
@@ -44,6 +44,45 @@ describe('Constants', () => {
         expect(uniqueIds.size).toBe(ids.length);
     });
 });
+
+// ============================================================
+// 1b. CONSTANTS — Spin Speed
+// ============================================================
+describe('Constants – SPIN_SPEED_LABELS and SPIN_SPEED_ROTATIONS', () => {
+    const STEPS = ['1', '2', '3', '4', '5'];
+
+    test('SPIN_SPEED_LABELS has an entry for every step', async () => {
+        const { SPIN_SPEED_LABELS } = await import('../src/constants.js');
+        STEPS.forEach(step => {
+            expect(SPIN_SPEED_LABELS).toHaveProperty(step);
+            expect(typeof SPIN_SPEED_LABELS[step]).toBe('string');
+            expect(SPIN_SPEED_LABELS[step].length).toBeGreaterThan(0);
+        });
+    });
+
+    test('SPIN_SPEED_ROTATIONS has an entry for every step', async () => {
+        const { SPIN_SPEED_ROTATIONS } = await import('../src/constants.js');
+        STEPS.forEach(step => {
+            expect(SPIN_SPEED_ROTATIONS).toHaveProperty(step);
+            expect(typeof SPIN_SPEED_ROTATIONS[step]).toBe('number');
+            expect(SPIN_SPEED_ROTATIONS[step]).toBeGreaterThan(0);
+        });
+    });
+
+    test('SPIN_SPEED_ROTATIONS values are strictly ascending (Very Slow → Very Fast)', async () => {
+        const { SPIN_SPEED_ROTATIONS } = await import('../src/constants.js');
+        const values = STEPS.map(step => SPIN_SPEED_ROTATIONS[step]);
+        for (let i = 1; i < values.length; i++) {
+            expect(values[i]).toBeGreaterThan(values[i - 1]);
+        }
+    });
+
+    test('SPIN_SPEED_LABELS step 3 is the Medium default', async () => {
+        const { SPIN_SPEED_LABELS } = await import('../src/constants.js');
+        expect(SPIN_SPEED_LABELS['3']).toBe('Medium');
+    });
+});
+
 
 // ============================================================
 // 2. UTILS — easeOut
