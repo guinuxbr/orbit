@@ -77,3 +77,28 @@ export const PALETTE = [
     '#374151', '#4b5563', '#6b7280', '#9ca3af', '#78716c',
 ];
 
+/**
+ * Maps the spin-speed slider step (1–5) to a human-readable label.
+ * @type {Object.<string, string>}
+ */
+export const SPIN_SPEED_LABELS = {
+    '1': 'Very Slow',
+    '2': 'Slow',
+    '3': 'Medium',
+    '4': 'Fast',
+    '5': 'Very Fast',
+};
+
+/**
+ * Maps the spin-speed slider step (1–5) to the base number of full wheel rotations.
+ * A random ±20% jitter is applied per spin to prevent identical-feeling outcomes.
+ * @type {Object.<string, number>}
+ */
+export const SPIN_SPEED_ROTATIONS = {
+    '1': 2,    // ~2 full turns  (Very Slow)
+    '2': 4,    // ~4 full turns  (Slow)
+    '3': 7,    // ~7 full turns  (Medium — default)
+    '4': 12,   // ~12 full turns (Fast)
+    '5': 20,   // ~20 full turns (Very Fast)
+};
+

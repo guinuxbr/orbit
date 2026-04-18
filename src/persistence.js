@@ -21,6 +21,7 @@ export function saveConfig(state, dom) {
             uiTheme: document.getElementById('ui-theme-select')?.value || 'teal',
             lightDarkTheme: localStorage.getItem('orbit-theme') || 'auto',
             spinDuration: dom.spinDurationInput?.value || '15',
+            spinSpeed: dom.spinSpeedInput?.value || '3',
             winnerMessage: dom.winnerMessageInput?.value || '{name} wins!',
             volume: dom.volumeSlider?.value || '50',
             spinningSound: dom.spinningSoundSelect?.value || 'random',

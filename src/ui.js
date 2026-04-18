@@ -4,6 +4,7 @@
  */
 
 import { UI_THEMES } from './constants.js';
+import { SPIN_SPEED_LABELS } from './constants.js';
 import { setVolume, musicTracks, sfxTracks, addCustomTrack } from './sounds.js';
 import { validateFile } from './utils.js';
 
@@ -119,6 +120,18 @@ export function setupVolume(dom) {
 }
 
 /**
+ * Attaches a listener to the spin-speed range slider to update its label in real time.
+ * @param {Object} dom - Global dictionary of DOM element references.
+ */
+export function setupSpinSpeed(dom) {
+    const { spinSpeedInput, spinSpeedValue } = dom;
+    if (!spinSpeedInput || !spinSpeedValue) return;
+    spinSpeedInput.addEventListener('input', () => {
+        spinSpeedValue.textContent = SPIN_SPEED_LABELS[spinSpeedInput.value] ?? 'Medium';
+    });
+}
+
+/**
  * Fills music and SFX dropdown menus from the sound catalog.
  * @param {Object} dom - Global dictionary of DOM element references.
  */
@@ -188,6 +201,7 @@ export function setupAutoApply(state, dom, onSave) {
     const inputs = [
         document.getElementById('ui-theme-select'),
         document.getElementById('spin-duration'),
+        document.getElementById('spin-speed'),
         document.getElementById('winner-message'),
         document.getElementById('spinning-sound'),
         document.getElementById('winner-sound'),

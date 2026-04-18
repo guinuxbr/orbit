@@ -1,0 +1,17 @@
+services:
+  orbit:
+    # Build the image locally instead of pulling from GHCR
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Pass git metadata so the version tag in the UI shows the correct info
+        VITE_COMMIT_HASH: ${VITE_COMMIT_HASH:-unknown}
+        VITE_BUILD_DATE: ${VITE_BUILD_DATE:-unknown}
+        VITE_APP_VERSION: ${VITE_APP_VERSION:-unknown}
+    container_name: orbit-local
+    hostname: orbit-local
+    ports:
+      # Map host port 28080 to container port 80 (HTTP)
+      - "28080:80"
+    restart: unless-stopped

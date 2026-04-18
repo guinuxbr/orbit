@@ -4,7 +4,7 @@
  */
 
 import { initTheme, applyTheme, getTheme } from './theme.js';
-import { INITIAL_NAMES } from './constants.js';
+import { INITIAL_NAMES, SPIN_SPEED_LABELS } from './constants.js';
 import { showError, hideError } from './utils.js';
 import { openGallery, loadGalleryImages, searchGallery } from './gallery.js';
 import { initGravityEffect } from './gravity.js';
@@ -16,6 +16,7 @@ import {
   setupUITheme,
   applyUITheme,
   setupVolume,
+  setupSpinSpeed,
   populateSoundDropdowns,
   handleCustomSound,
   setupAutoApply
@@ -201,6 +202,8 @@ function init() {
   dom.volumeSlider = document.getElementById('volume-slider');
   dom.volumeValue = document.getElementById('volume-value');
   dom.spinDurationInput = document.getElementById('spin-duration');
+  dom.spinSpeedInput    = document.getElementById('spin-speed');
+  dom.spinSpeedValue    = document.getElementById('spin-speed-value');
   dom.winnerMessageInput = document.getElementById('winner-message');
   dom.spinningSoundSelect = document.getElementById('spinning-sound');
   dom.winnerSoundSelect = document.getElementById('winner-sound');
@@ -230,7 +233,8 @@ function init() {
   initTheme(); // Set system theme preference (Auto/Light/Dark)
   setupUITheme(state); // Setup UI color palette
   initGravityEffect(state, dom); // Start background particle animation
-  setupVolume(dom); // Wire audio volume slider
+  setupVolume(dom);       // Wire audio volume slider
+  setupSpinSpeed(dom);    // Wire spin-speed slider label
   populateSoundDropdowns(dom); // Fill music/SFX menus
   setupTabs(); // Initialize side panel tab logic
   setupThemeSwitcher(); // Wire nav theme buttons
@@ -255,6 +259,10 @@ function init() {
       applyUITheme(saved.uiTheme, state);
     }
     if (saved.spinDuration && dom.spinDurationInput) dom.spinDurationInput.value = saved.spinDuration;
+    if (saved.spinSpeed && dom.spinSpeedInput) {
+      dom.spinSpeedInput.value = saved.spinSpeed;
+      if (dom.spinSpeedValue) dom.spinSpeedValue.textContent = SPIN_SPEED_LABELS[saved.spinSpeed] ?? 'Medium';
+    }
     if (saved.winnerMessage && dom.winnerMessageInput) dom.winnerMessageInput.value = saved.winnerMessage;
     if (saved.volume && dom.volumeSlider) {
       dom.volumeSlider.value = saved.volume;

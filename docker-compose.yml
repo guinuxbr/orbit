@@ -1,13 +1,10 @@
 services:
   orbit:
-    # Build the image
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: orbit:latest
+    # Pull the pre-built image from the GitHub Container Registry.
+    image: ghcr.io/guinuxbr/orbit:latest
     container_name: orbit
     hostname: orbit
     ports:
-      # Map host port 8080 to container port 80 (HTTP)
-      - "8080:80"
+      # Map host port 28080 to container port 80 (HTTP)
+      - "28080:80"
     restart: unless-stopped

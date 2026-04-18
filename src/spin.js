@@ -4,6 +4,7 @@
  */
 
 import { easeOut } from './utils.js';
+import { SPIN_SPEED_ROTATIONS } from './constants.js';
 import { playMusic, stopMusic, playSfx, getRandomMusicId, getRandomSfxId } from './sounds.js';
 
 /**
@@ -43,29 +44,36 @@ export function finalizeSpin(sfxId, state, dom) {
 
 /**
  * Recursive animation frame handler for the spinning wheel.
- * @param {number} now - High-res timestamp provided by requestAnimationFrame.
+ * Uses target-angle interpolation: the wheel is driven from `initialAngle`
+ * to `initialAngle + totalAngle` as a pure function of elapsed time.
+ * This makes the total rotation frame-rate-independent.
+ * @param {number} currentTimestamp - High-res timestamp provided by requestAnimationFrame.
  * @param {number} startTime - Performance timestamp of when the spin began.
  * @param {number} durationMs - Configured duration of the spin in milliseconds.
- * @param {number} spinAngleStart - Initial rotational velocity.
+ * @param {number} initialAngle - Wheel angle (radians) at the moment the spin started.
+ * @param {number} totalAngle - Total radians the wheel must travel before stopping.
  * @param {string} sfxId - SFX to play upon completion.
  * @param {Object} state - Global application state.
  * @param {Object} dom - Global dictionary of DOM element references.
  */
-export function animateSpin(currentTimestamp, startTime, durationMs, spinAngleStart, sfxId, state, dom) {
+export function animateSpin(currentTimestamp, startTime, durationMs, initialAngle, totalAngle, sfxId, state, dom) {
     const elapsed = currentTimestamp - startTime;
 
     if (elapsed >= durationMs) {
+        // Snap to the exact final angle before finalising to avoid floating-point drift
+        state.startAngle = initialAngle + totalAngle;
         finalizeSpin(sfxId, state, dom);
         return;
     }
 
-    // Easing progresses from 0 to 1 over durationMs
+    // Drive angle as a pure function of time — no per-frame accumulation
     const progress = elapsed / durationMs;
-    const spinAngle = spinAngleStart * (1 - easeOut(progress, 0, 1, 1));
-    state.startAngle += (spinAngle * Math.PI / 180);
+    state.startAngle = initialAngle + totalAngle * easeOut(progress, 0, 1, 1);
 
     state.drawWheel();
-    state.animationId = requestAnimationFrame((timestamp) => animateSpin(timestamp, startTime, durationMs, spinAngleStart, sfxId, state, dom));
+    state.animationId = requestAnimationFrame((timestamp) =>
+        animateSpin(timestamp, startTime, durationMs, initialAngle, totalAngle, sfxId, state, dom)
+    );
 }
 
 /**
@@ -84,9 +92,14 @@ export function spinWheel(state, dom) {
     dom.winnerToast.classList.remove('visible');
     state.lastWinner = null;
 
-    const durationMs = (parseFloat(dom.spinDurationInput.value) || 5) * 1000;
-    const spinAngleStart = Math.random() * 10 + 10;
-    const startTime = performance.now();
+    const durationMs    = (parseFloat(dom.spinDurationInput.value) || 5) * 1000;
+    const speedStep     = dom.spinSpeedInput?.value ?? '3';
+    const baseRotations = SPIN_SPEED_ROTATIONS[speedStep] ?? 7;
+    // ±20% random jitter keeps successive spins from feeling mechanical
+    const jitter        = 1 + (Math.random() * 0.4 - 0.2);
+    const totalAngle    = baseRotations * jitter * Math.PI * 2;
+    const initialAngle  = state.startAngle;
+    const startTime     = performance.now();
 
     // Select and play music track (Random vs Explicit)
     let musicId = dom.spinningSoundSelect.value;
@@ -97,7 +110,9 @@ export function spinWheel(state, dom) {
     let sfxId = dom.winnerSoundSelect.value;
     if (sfxId === 'random') sfxId = getRandomSfxId();
 
-    state.animationId = requestAnimationFrame((currentTimestamp) => animateSpin(currentTimestamp, startTime, durationMs, spinAngleStart, sfxId, state, dom));
+    state.animationId = requestAnimationFrame((currentTimestamp) =>
+        animateSpin(currentTimestamp, startTime, durationMs, initialAngle, totalAngle, sfxId, state, dom)
+    );
 }
 
 /**

@@ -2,8 +2,8 @@ name: Create Release
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - "v*"
 
 permissions:
   contents: write
@@ -14,13 +14,19 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
+        with:
+          # Full history is required for the ancestry check below
+          fetch-depth: 0
 
-      - name: Get version from package.json
-        id: pkg_version
-        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+      - name: Ensure tag is on main
+        run: |
+          git fetch origin main
+          if ! git merge-base --is-ancestor "${{ github.sha }}" origin/main; then
+            echo "::error::Tag ${{ github.ref_name }} does not point to a commit on main. Release aborted."
+            exit 1
+          fi
 
       - name: Create Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
-          tag_name: v${{ steps.pkg_version.outputs.version }}
           generate_release_notes: true

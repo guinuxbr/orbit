@@ -1,6 +1,11 @@
 ########## Build stage ##########
 FROM cgr.dev/chainguard/node:latest-dev AS build
 
+# Build-time metadata injected by CI (or docker-compose.local.yml for local builds)
+ARG VITE_COMMIT_HASH=unknown
+ARG VITE_BUILD_DATE=unknown
+ARG VITE_APP_VERSION=unknown
+
 WORKDIR /app
 
 # Copy package descriptors and install dependencies separately for better caching
@@ -9,7 +14,10 @@ RUN npm install
 
 # Copy all source files and build
 COPY --chown=node:node . .
-RUN npm run build
+RUN VITE_COMMIT_HASH=${VITE_COMMIT_HASH} \
+    VITE_BUILD_DATE=${VITE_BUILD_DATE} \
+    VITE_APP_VERSION=${VITE_APP_VERSION} \
+    npm run build
 
 ########## Runtime stage ##########
 FROM cgr.dev/chainguard/nginx:latest AS runtime

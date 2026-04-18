@@ -1,23 +1,58 @@
-[tasks.compose-up]
-description = "Build the project"
-run = "docker compose down && docker compose build && docker compose up -d --force-recreate"
-
-[tasks.compose-down]
-description = "Destroy the project"
-run = "docker compose down && docker container rm orbit && docker network rm orbit_default"
+# ── Development ──────────────────────────────────────────────────────────────
 
 [tasks.dev]
-description = "Run the project"
+description = "Start the Vite development server (accessible on the network)"
 run = "npm run dev -- --host"
 
 [tasks.build]
-description = "Build the project"
+description = "Build the production bundle via Vite"
 run = "npm run build"
 
+[tasks.preview]
+description = "Preview the production build locally (accessible on the network)"
+run = "npm run preview -- --host"
+
 [tasks.test]
-description = "Test the project"
+description = "Run the Vitest test suite"
 run = "npm run test"
 
-[tasks.preview]
-description = "Preview the project"
-run = "npm run preview -- --host"
+# ── Docker – GHCR image (standard) ───────────────────────────────────────────
+
+[tasks.docker-up]
+description = "Pull the GHCR image and start the container"
+run = "docker compose up -d"
+
+[tasks.docker-down]
+description = "Stop and remove the GHCR container"
+run = "docker compose down"
+
+# ── Docker – local build ──────────────────────────────────────────────────────
+
+[tasks.docker-local-build]
+description = "Build the Docker image locally, injecting git metadata for the version display"
+run = """
+docker compose -f docker-compose.local.yml build \
+  --build-arg VITE_COMMIT_HASH=$(git rev-parse --short HEAD) \
+  --build-arg "VITE_BUILD_DATE=$(git log -1 --format=%ad --date=format:'%d %b %Y')" \
+  --build-arg VITE_APP_VERSION=$(node -p "require('./package.json').version")
+"""
+
+[tasks.docker-local-up]
+description = "Build the Docker image locally and start the container"
+depends = ["docker-local-build"]
+run = "docker compose -f docker-compose.local.yml up -d"
+
+[tasks.docker-local-down]
+description = "Stop and remove the locally built container"
+run = "docker compose -f docker-compose.local.yml down"
+
+[tasks.docker-local-rebuild]
+description = "Stop, rebuild, and restart the locally built container (no-cache)"
+run = """
+docker compose -f docker-compose.local.yml down
+docker compose -f docker-compose.local.yml build --no-cache \
+  --build-arg VITE_COMMIT_HASH=$(git rev-parse --short HEAD) \
+  --build-arg "VITE_BUILD_DATE=$(git log -1 --format=%ad --date=format:'%d %b %Y')" \
+  --build-arg VITE_APP_VERSION=$(node -p "require('./package.json').version")
+docker compose -f docker-compose.local.yml up -d
+"""
