@@ -5,7 +5,7 @@ random picks. Built with a focus on aesthetics and user experience, it offers a 
 smooth animations, and customization options.
 
 [![Deploy to GitHub Pages](https://github.com/guinuxbr/orbit/actions/workflows/deploy.yml/badge.svg)](https://github.com/guinuxbr/orbit/actions/workflows/deploy.yml)
-[![Publish to GHCR](https://github.com/guinuxbr/orbit/actions/workflows/publish-ghcr.yml/badge.svg)](https://github.com/guinuxbr/orbit/actions/workflows/publish-ghcr.yml)
+[![Publish to GHCR](https://github.com/guinuxbr/orbit/actions/workflows/release-and-publish.yml/badge.svg)](https://github.com/guinuxbr/orbit/actions/workflows/release-and-publish.yml)
 [![GitHub Release](https://img.shields.io/github/v/release/guinuxbr/orbit?sort=semver&logo=github&color=blue)](https://github.com/guinuxbr/orbit/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE.md)
 [![Node.js](https://img.shields.io/badge/Node.js-22%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
@@ -153,18 +153,18 @@ The project uses a standard Vite/Tailwind configuration. You can customize the l
 
 ## 🔄 CI/CD
 
-| Workflow                   | Trigger                       | Description                                        |
-|----------------------------|-------------------------------|----------------------------------------------------|
-| **Deploy to GitHub Pages** | Push to `main`                | Builds and publishes the app to GitHub Pages       |
-| **Publish to GHCR**        | Push to `main` or version tag | Builds multi-arch Docker image and pushes to GHCR  |
-| **Create Release**         | Push of `v*` tag              | Creates a GitHub Release with auto-generated notes |
+| Workflow                   | Trigger        | Description                                                                                                                |
+|----------------------------|----------------|----------------------------------------------------------------------------------------------------------------------------|
+| **Deploy to GitHub Pages** | Push to `main` | Builds and publishes the app to GitHub Pages                                                                               |
+| **Release & Publish**      | Push to `main` | Checks version, builds Docker image, and — if the version is new — creates a GitHub Release and pushes semver tags to GHCR |
 
-To cut a new release, bump the version in `package.json`, commit to `main`, then push a matching tag:
+Releases are **fully automated**. The only manual step is bumping the version in `package.json` before opening the PR:
 
-```bash
-git tag v1.2.3
-git push origin v1.2.3
-```
+1. Bump the version in `package.json` (e.g. `1.2.2` → `1.3.0`).
+2. Open and merge a PR into `main`.
+3. The workflow automatically creates the `v1.3.0` git tag, the GitHub Release, and the GHCR image.
+
+If you merge a PR without bumping the version, only the `:latest` and `:sha-*` Docker tags are updated — no release is created.
 
 ## 📜 Licence
 
