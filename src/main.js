@@ -18,6 +18,7 @@ import {
   setupVolume,
   setupSpinSpeed,
   populateSoundDropdowns,
+  setupSoundPreviews,
   handleCustomSound,
   setupAutoApply
 } from './ui.js';
@@ -207,6 +208,8 @@ function init() {
   dom.winnerMessageInput = document.getElementById('winner-message');
   dom.spinningSoundSelect = document.getElementById('spinning-sound');
   dom.winnerSoundSelect = document.getElementById('winner-sound');
+  dom.previewMusicBtn = document.getElementById('preview-music-btn');
+  dom.previewSfxBtn = document.getElementById('preview-sfx-btn');
   dom.centerImageInput = document.getElementById('center-image-input');
   dom.clearImageBtn = document.getElementById('clear-image-btn');
   dom.imageSizeSelect = document.getElementById('image-size-select');
@@ -236,6 +239,7 @@ function init() {
   setupVolume(dom);       // Wire audio volume slider
   setupSpinSpeed(dom);    // Wire spin-speed slider label
   populateSoundDropdowns(dom); // Fill music/SFX menus
+  setupSoundPreviews(dom);     // Wire music/SFX preview buttons
   setupTabs(); // Initialize side panel tab logic
   setupThemeSwitcher(); // Wire nav theme buttons
   setupHamburger(); // Wire mobile menu

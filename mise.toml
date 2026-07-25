@@ -1,5 +1,4 @@
-# ── Development ──────────────────────────────────────────────────────────────
-
+# Development
 [tasks.dev]
 description = "Start the Vite development server (accessible on the network)"
 run = "npm run dev -- --host"
@@ -16,8 +15,7 @@ run = "npm run preview -- --host"
 description = "Run the Vitest test suite"
 run = "npm run test"
 
-# ── Docker – GHCR image (standard) ───────────────────────────────────────────
-
+# Docker - GHCR image (standard)
 [tasks.docker-up]
 description = "Pull the GHCR image and start the container"
 run = "docker compose up -d"
@@ -26,8 +24,7 @@ run = "docker compose up -d"
 description = "Stop and remove the GHCR container"
 run = "docker compose down"
 
-# ── Docker – local build ──────────────────────────────────────────────────────
-
+# Docker - local build
 [tasks.docker-local-build]
 description = "Build the Docker image locally, injecting git metadata for the version display"
 run = """
@@ -56,3 +53,8 @@ docker compose -f docker-compose.local.yml build --no-cache \
   --build-arg VITE_APP_VERSION=$(node -p "require('./package.json').version")
 docker compose -f docker-compose.local.yml up -d
 """
+
+# Release
+[tasks.release]
+description = "Release the application (bump version, test, format, commit, and push)"
+run = "mise/tasks/release"

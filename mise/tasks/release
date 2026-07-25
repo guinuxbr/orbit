@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+#USAGE flag "-v --version <version>" help="Release version (e.g. 1.5.0)"
+#USAGE flag "-m --message <message>" help="Conventional release notes message"
+#USAGE flag "-t --type <type>" help="Conventional commit type (default: feat)"
+set -euo pipefail
+
+REL_VERSION=""
+REL_MSG=""
+REL_TYPE="feat"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -v|--version)
+      REL_VERSION="$2"
+      shift 2
+      ;;
+    -m|--message|-s|--summary)
+      REL_MSG="$2"
+      shift 2
+      ;;
+    -t|--type)
+      REL_TYPE="$2"
+      shift 2
+      ;;
+    *)
+      if [ -z "$REL_VERSION" ]; then
+        REL_VERSION="$1"
+      elif [ -z "$REL_MSG" ]; then
+        REL_MSG="$1"
+      fi
+      shift
+      ;;
+  esac
+done
+
+if [ -z "$REL_VERSION" ]; then
+  echo "❌ Error: Version argument is required."
+  echo "Usage: mise run release -v 1.5.0 [-m \"Release details\"]"
+  echo "   or: mise run release --version 1.5.0 --message \"Release details\""
+  exit 1
+fi
+
+CURRENT_VER=$(node -p "require('./package.json').version")
+if [ "$CURRENT_VER" != "$REL_VERSION" ]; then
+  echo "📦 Bumping version from ${CURRENT_VER} to ${REL_VERSION}..."
+  npm version "$REL_VERSION" --no-git-tag-version
+else
+  echo "📦 Version is already set to ${REL_VERSION} in package.json."
+fi
+
+echo "🧪 Running test suite..."
+npm run test
+
+if command -v rumdl &> /dev/null; then
+  echo "✨ Formatting with rumdl..."
+  rumdl fmt || true
+fi
+
+echo "📝 Creating Conventional Commit..."
+git add .
+
+COMMIT_HEADER="${REL_TYPE}(release): release v${REL_VERSION}"
+
+if [ -n "$REL_MSG" ]; then
+  git commit -m "$COMMIT_HEADER" -m "$REL_MSG"
+else
+  git commit -m "$COMMIT_HEADER"
+fi
+
+echo "🚀 Pushing branch to origin..."
+git push origin HEAD
+
+NEW_VER=$(node -p "require('./package.json').version")
+echo ""
+echo "✅ Release v${NEW_VER} committed and pushed successfully!"
+echo "🎉 Next step: Open a PR into main to publish."

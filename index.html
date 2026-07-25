@@ -150,9 +150,9 @@
               <h2 id="winner-text" class="text-3xl lg:text-4xl font-extrabold bg-primary-gradient bg-clip-text text-transparent animate-bounce"></h2>
             </div>
             <div class="winner-actions flex flex-wrap justify-center gap-3">
-              <button id="remove-one-btn" class="px-5 py-2.5 rounded-lg border border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary font-bold transition-all">Remove Once</button>
-              <button id="remove-all-btn" class="px-5 py-2.5 rounded-lg bg-red-600 text-white font-bold shadow-lg shadow-red-600/30 hover:bg-red-700 transition-all">Remove All</button>
-              <button id="close-toast-btn" class="px-5 py-2.5 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-text-muted dark:text-gray-300 font-bold">Close</button>
+              <button id="remove-one-btn" class="px-5 py-2.5 rounded-lg border border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary font-bold transition-all flex items-center gap-2">➖ Remove Once</button>
+              <button id="remove-all-btn" class="px-5 py-2.5 rounded-lg bg-red-600 text-white font-bold shadow-lg shadow-red-600/30 hover:bg-red-700 transition-all flex items-center gap-2">🗑️ Remove All</button>
+              <button id="close-toast-btn" class="px-5 py-2.5 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-text-muted dark:text-gray-300 font-bold flex items-center gap-2">✕ Close</button>
             </div>
           </section>
         </div>
@@ -205,22 +205,22 @@
             <div class="mb-6">
               <label class="block mb-2 font-bold text-text-muted dark:text-white">Load Source</label>
               <div class="flex gap-3">
-                <div class="flex-1">
+                <div class="flex-1 min-w-0">
                   <label for="center-image-input"
-                    class="flex items-center justify-center p-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 font-bold cursor-pointer hover:border-primary hover:text-primary dark:hover:border-primary dark:text-white transition-all">
-                    Upload
+                    class="flex items-center justify-center gap-2 p-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 text-sm font-bold text-text dark:text-white cursor-pointer hover:border-primary hover:text-primary dark:hover:border-primary transition-all whitespace-nowrap">
+                    📁 Upload Image
                   </label>
                   <input type="file" id="center-image-input" accept="image/*" class="hidden" />
                 </div>
                 <button id="browse-gallery-btn"
-                  class="flex-1 p-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 font-bold hover:border-primary hover:text-primary dark:hover:border-primary dark:text-white transition-all">
-                  Gallery
+                  class="flex-1 min-w-0 p-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 text-sm font-bold text-text dark:text-white hover:border-primary hover:text-primary dark:hover:border-primary transition-all flex items-center justify-center gap-2 whitespace-nowrap">
+                  🖼️ Gallery
                 </button>
               </div>
             </div>
             <button id="clear-image-btn"
-              class="w-full p-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 font-bold hover:text-red-500 transition-all">
-              ✕ Clear Image
+              class="w-full p-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 text-sm font-bold text-text dark:text-white hover:border-red-500 hover:text-red-500 dark:hover:text-red-400 transition-all flex items-center justify-center gap-2 cursor-pointer">
+              🗑️ Clear Image
             </button>
           </div>
         </div>
@@ -231,28 +231,30 @@
             <h3 class="mb-6 pb-3 text-2xl font-bold border-b-2 border-gray-200 dark:border-white/20 text-text dark:text-white">Audio Settings</h3>
             <div class="mb-6">
               <label for="spinning-sound" class="block mb-2 font-bold text-text-muted dark:text-white">Spinning Music</label>
-              <div class="flex gap-3 items-center">
-                <select id="spinning-sound" class="flex-1 p-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 text-text dark:text-white">
+              <div class="flex gap-2 items-center mb-2">
+                <select id="spinning-sound" class="flex-1 min-w-0 p-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 text-text dark:text-white text-sm">
                   <option value="none">None</option>
                   <option value="random" selected>🎲 Random</option>
                 </select>
-                <div class="flex-1">
-                  <label for="custom-music-input" class="flex items-center justify-center p-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 font-bold cursor-pointer hover:border-primary hover:text-primary dark:hover:border-primary dark:text-white transition-all">Upload</label>
-                  <input type="file" id="custom-music-input" accept="audio/*" class="hidden" />
-                </div>
+                <button id="preview-music-btn" type="button" aria-label="Preview spinning music" title="Preview track" class="px-3.5 py-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 font-bold hover:border-primary hover:text-primary dark:hover:border-primary dark:text-white transition-all cursor-pointer flex items-center justify-center min-w-[44px] shrink-0">▶</button>
+              </div>
+              <div>
+                <label for="custom-music-input" class="flex items-center justify-center gap-2 p-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 text-sm font-bold text-text dark:text-white cursor-pointer hover:border-primary hover:text-primary dark:hover:border-primary transition-all whitespace-nowrap">📁 Upload Custom Music</label>
+                <input type="file" id="custom-music-input" accept="audio/*" class="hidden" />
               </div>
             </div>
             <div class="mb-6">
               <label for="winner-sound" class="block mb-2 font-bold text-text-muted dark:text-white">Winner SFX</label>
-              <div class="flex gap-3 items-center">
-                <select id="winner-sound" class="flex-1 p-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 text-text dark:text-white">
+              <div class="flex gap-2 items-center mb-2">
+                <select id="winner-sound" class="flex-1 min-w-0 p-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 text-text dark:text-white text-sm">
                   <option value="none">None</option>
                   <option value="random" selected>🎲 Random</option>
                 </select>
-                <div class="flex-1">
-                  <label for="custom-sfx-input" class="flex items-center justify-center p-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 font-bold cursor-pointer hover:border-primary hover:text-primary dark:hover:border-primary dark:text-white transition-all">Upload</label>
-                  <input type="file" id="custom-sfx-input" accept="audio/*" class="hidden" />
-                </div>
+                <button id="preview-sfx-btn" type="button" aria-label="Preview winner SFX" title="Preview track" class="px-3.5 py-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 font-bold hover:border-primary hover:text-primary dark:hover:border-primary dark:text-white transition-all cursor-pointer flex items-center justify-center min-w-[44px] shrink-0">▶</button>
+              </div>
+              <div>
+                <label for="custom-sfx-input" class="flex items-center justify-center gap-2 p-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 text-sm font-bold text-text dark:text-white cursor-pointer hover:border-primary hover:text-primary dark:hover:border-primary transition-all whitespace-nowrap">📁 Upload Custom SFX</label>
+                <input type="file" id="custom-sfx-input" accept="audio/*" class="hidden" />
               </div>
             </div>
             <div class="mb-6">
@@ -268,7 +270,7 @@
         <!-- Tab: Display -->
         <div id="tab-display" class="tab-content transition-all duration-300">
           <div class="glass p-6 lg:p-8 rounded-radius border border-white/20 dark:border-white/10 shadow-xl bg-white/80 dark:bg-white/5 backdrop-blur-xl">
-            <h3 class="mb-6 pb-3 text-2xl font-bold border-b-2 border-gray-200 dark:border-white/20 text-text dark:text-white">Display & Behavior</h3>
+            <h3 class="mb-6 pb-3 text-2xl font-bold border-b-2 border-gray-200 dark:border-white/20 text-text dark:text-white">Display & Behaviour</h3>
             <div class="mb-6">
               <label for="ui-theme-select" class="block mb-2 font-bold text-text-muted dark:text-white">Colour Palette</label>
               <select id="ui-theme-select" class="w-full p-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 text-text dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"></select>
@@ -315,7 +317,7 @@
           <button id="gallery-close-btn" class="absolute top-4 right-4 sm:relative sm:top-auto sm:right-auto w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-white/10 text-2xl text-text-muted dark:text-gray-400">✕</button>
         </div>
         <div id="gallery-grid" class="flex-1 overflow-y-auto grid grid-cols-[repeat(auto-fill,minmax(130px,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-4 sm:gap-6 mb-6 sm:mb-8 pr-2 custom-scrollbar"></div>
-        <button id="gallery-load-more" class="w-full p-4 rounded-radius-sm border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 font-bold hover:text-primary transition-all">Load More Images</button>
+        <button id="gallery-load-more" class="w-full p-4 rounded-radius-sm border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 font-bold hover:text-primary transition-all flex items-center justify-center gap-2">🖼️ Load More Images</button>
       </div>
     </div>
 
@@ -362,8 +364,8 @@
         This will permanently clear all saved names, settings, and the selected image. The page will reload fresh.
       </p>
       <div class="flex gap-3 mt-2">
-        <button id="reset-modal-cancel" class="flex-1 px-4 py-3 rounded-radius-sm border border-gray-200 dark:border-white/10 font-bold dark:text-white">Cancel</button>
-        <button id="reset-modal-confirm" class="flex-1 px-4 py-3 rounded-radius-sm bg-red-500 hover:bg-red-600 font-bold text-white shadow-lg">Start Fresh →</button>
+        <button id="reset-modal-cancel" class="flex-1 px-4 py-3 rounded-radius-sm border border-gray-200 dark:border-white/10 font-bold dark:text-white flex items-center justify-center gap-2">✕ Cancel</button>
+        <button id="reset-modal-confirm" class="flex-1 px-4 py-3 rounded-radius-sm bg-red-500 hover:bg-red-600 font-bold text-white shadow-lg flex items-center justify-center gap-2">🔄 Start Fresh</button>
       </div>
     </div>
   </div>

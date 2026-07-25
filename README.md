@@ -35,7 +35,8 @@ frame-rate-independent animations.
 - **Logic**: Modern ES6+ JavaScript
 - **Infrastructure**: [Docker](https://www.docker.com/) + [Nginx](https://www.nginx.com/)
 - **Base Images**: [Chainguard Images](https://www.chainguard.dev/) (for minimal attack surface and maximum security)
-- **Container Registry**: [GitHub Container Registry (GHCR)](https://ghcr.io) — images published automatically on every release
+- **Container Registry**: [GitHub Container Registry (GHCR)](https://ghcr.io) — images published automatically on every
+  release
 
 ## 🚀 Getting Started
 
@@ -70,18 +71,19 @@ The app will be available at `http://localhost:5173`.
 
 ### Available Mise Tasks
 
-| Task                            | Description                                        |
-|---------------------------------|----------------------------------------------------|
-| `mise run dev`                  | Start the Vite development server                  |
-| `mise run build`                | Build the production bundle                        |
-| `mise run preview`              | Preview the production build locally               |
-| `mise run test`                 | Run the test suite                                 |
-| `mise run docker-up`            | Pull the GHCR image and start the container        |
-| `mise run docker-down`          | Stop and remove the GHCR container                 |
-| `mise run docker-local-build`   | Build the Docker image locally (with version info) |
-| `mise run docker-local-up`      | Build locally and start the container              |
-| `mise run docker-local-down`    | Stop and remove the locally built container        |
-| `mise run docker-local-rebuild` | Full rebuild from scratch (no cache)               |
+| Task                            | Description                                             |
+|---------------------------------|---------------------------------------------------------|
+| `mise run dev`                  | Start the Vite development server                       |
+| `mise run build`                | Build the production bundle                             |
+| `mise run preview`              | Preview the production build locally                    |
+| `mise run test`                 | Run the test suite                                      |
+| `mise run release <version>`    | Prepare a release (bump version, test, format & commit) |
+| `mise run docker-up`            | Pull the GHCR image and start the container             |
+| `mise run docker-down`          | Stop and remove the GHCR container                      |
+| `mise run docker-local-build`   | Build the Docker image locally (with version info)      |
+| `mise run docker-local-up`      | Build locally and start the container                   |
+| `mise run docker-local-down`    | Stop and remove the locally built container             |
+| `mise run docker-local-rebuild` | Full rebuild from scratch (no cache)                    |
 
 ### Production Build
 
@@ -158,13 +160,16 @@ The project uses a standard Vite/Tailwind configuration. You can customize the l
 | **Deploy to GitHub Pages** | Push to `main` | Builds and publishes the app to GitHub Pages                                                                               |
 | **Release & Publish**      | Push to `main` | Checks version, builds Docker image, and — if the version is new — creates a GitHub Release and pushes semver tags to GHCR |
 
-Releases are **fully automated**. The only manual step is bumping the version in `package.json` before opening the PR:
+Releases are **fully automated**. You can use the helper task to prepare and push a release:
 
-1. Bump the version in `package.json` (e.g. `1.2.2` → `1.3.0`).
+1. Run
+   `mise run release --version 1.5.0 --message "Commit message"`
+   (bumps versions, runs tests, formats, creates commit `feat(release): release v1.5.0`, and pushes the remote branch).
 2. Open and merge a PR into `main`.
-3. The workflow automatically creates the `v1.3.0` git tag, the GitHub Release, and the GHCR image.
+3. Merging into `main` automatically creates the `v1.5.0` git tag, the GitHub Release, and the GHCR image.
 
-If you merge a PR without bumping the version, only the `:latest` and `:sha-*` Docker tags are updated — no release is created.
+If you merge a PR without bumping the version, only the `:latest` and `:sha-*` Docker tags are updated — no release is
+created.
 
 ## 📜 Licence
 

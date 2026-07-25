@@ -5,7 +5,7 @@
 
 import { UI_THEMES } from './constants.js';
 import { SPIN_SPEED_LABELS } from './constants.js';
-import { setVolume, musicTracks, sfxTracks, addCustomTrack } from './sounds.js';
+import { setVolume, musicTracks, sfxTracks, addCustomTrack, previewMusicTrack, previewSfxTrack, stopAllPreviews } from './sounds.js';
 import { validateFile } from './utils.js';
 
 /**
@@ -154,6 +154,68 @@ export function populateSoundDropdowns(dom) {
         option.textContent = track.label;
         winnerSoundSelect.appendChild(option);
     });
+}
+
+/**
+ * Sets up preview buttons for music and sound effects.
+ * @param {Object} dom - Global dictionary of DOM element references.
+ */
+export function setupSoundPreviews(dom) {
+    const { spinningSoundSelect, winnerSoundSelect, previewMusicBtn, previewSfxBtn } = dom;
+
+    const resetMusicBtn = () => {
+        if (previewMusicBtn) {
+            previewMusicBtn.textContent = '▶';
+            previewMusicBtn.classList.remove('bg-primary', 'text-white');
+        }
+    };
+
+    const resetSfxBtn = () => {
+        if (previewSfxBtn) {
+            previewSfxBtn.textContent = '▶';
+            previewSfxBtn.classList.remove('bg-primary', 'text-white');
+        }
+    };
+
+    if (previewMusicBtn && spinningSoundSelect) {
+        previewMusicBtn.addEventListener('click', () => {
+            resetSfxBtn();
+            const isPlaying = previewMusicTrack(spinningSoundSelect.value);
+            if (isPlaying) {
+                previewMusicBtn.textContent = '⏹';
+                previewMusicBtn.classList.add('bg-primary', 'text-white');
+            } else {
+                resetMusicBtn();
+            }
+        });
+
+        spinningSoundSelect.addEventListener('change', () => {
+            if (previewMusicBtn.textContent === '⏹') {
+                const isPlaying = previewMusicTrack(spinningSoundSelect.value);
+                if (!isPlaying) resetMusicBtn();
+            }
+        });
+    }
+
+    if (previewSfxBtn && winnerSoundSelect) {
+        previewSfxBtn.addEventListener('click', () => {
+            resetMusicBtn();
+            const isPlaying = previewSfxTrack(winnerSoundSelect.value, () => resetSfxBtn());
+            if (isPlaying) {
+                previewSfxBtn.textContent = '⏹';
+                previewSfxBtn.classList.add('bg-primary', 'text-white');
+            } else {
+                resetSfxBtn();
+            }
+        });
+
+        winnerSoundSelect.addEventListener('change', () => {
+            if (previewSfxBtn.textContent === '⏹') {
+                const isPlaying = previewSfxTrack(winnerSoundSelect.value, () => resetSfxBtn());
+                if (!isPlaying) resetSfxBtn();
+            }
+        });
+    }
 }
 
 /**

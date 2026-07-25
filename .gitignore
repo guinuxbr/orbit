@@ -63,3 +63,6 @@ dist-ssr
 # System Files
 .DS_Store
 Thumbs.db
+
+# Rumdl
+.rumdl_cache/

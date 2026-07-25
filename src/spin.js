@@ -5,7 +5,7 @@
 
 import { easeOut } from './utils.js';
 import { SPIN_SPEED_ROTATIONS } from './constants.js';
-import { playMusic, stopMusic, playSfx, getRandomMusicId, getRandomSfxId } from './sounds.js';
+import { playMusic, stopMusic, playSfx, getRandomMusicId, getRandomSfxId, stopAllPreviews } from './sounds.js';
 
 /**
  * Finalizes the spin animation, determines the winner, and triggers UI updates.
@@ -83,6 +83,10 @@ export function animateSpin(currentTimestamp, startTime, durationMs, initialAngl
  */
 export function spinWheel(state, dom) {
     if (state.isSpinningWheel || state.names.length === 0) return;
+
+    stopAllPreviews();
+    if (dom.previewMusicBtn) { dom.previewMusicBtn.textContent = '▶'; dom.previewMusicBtn.classList.remove('bg-primary', 'text-white'); }
+    if (dom.previewSfxBtn) { dom.previewSfxBtn.textContent = '▶'; dom.previewSfxBtn.classList.remove('bg-primary', 'text-white'); }
 
     state.isSpinningWheel = true;
     state.isSpinning = true; // Increases background particle velocity
