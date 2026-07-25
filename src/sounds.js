@@ -61,7 +61,41 @@ let currentVolume = 0.5;
 let currentMusic = null;
 
 /**
- * Tracking for last random selections to avoid sequence repetition.
+ * Reference to the currently playing SFX audio element.
+ * @type {HTMLAudioElement|null}
+ * @private
+ */
+let currentSfx = null;
+
+/**
+ * ID of currently previewing music option ('none', 'random', or track ID).
+ * @type {string|null}
+ * @private
+ */
+let previewMusicOption = null;
+
+/**
+ * ID of currently previewing SFX option ('none', 'random', or track ID).
+ * @type {string|null}
+ * @private
+ */
+let previewSfxOption = null;
+
+/**
+ * Tracking for played tracks in the current cycle to avoid repetition.
+ * @type {Set<string>}
+ * @private
+ */
+const playedMusicIds = new Set();
+
+/**
+ * @type {Set<string>}
+ * @private
+ */
+const playedSfxIds = new Set();
+
+/**
+ * Tracking for last random selections across cycle boundaries.
  * @type {string|null}
  * @private
  */
@@ -72,6 +106,16 @@ let lastRandomMusicId = null;
  * @private
  */
 let lastRandomSfxId = null;
+
+/**
+ * Resets the history of played random tracks for both music and sound effects.
+ */
+export function resetRandomHistory() {
+    playedMusicIds.clear();
+    playedSfxIds.clear();
+    lastRandomMusicId = null;
+    lastRandomSfxId = null;
+}
 
 /**
  * Retrieves or creates an Audio object for the given file path.
@@ -122,7 +166,7 @@ export function playMusic(trackId) {
     audio.volume = currentVolume;
     audio.loop = true;
     audio.currentTime = 0;
-    audio.play().catch(() => { }); // ignore autoplay restrictions
+    audio.play()?.catch?.(() => { }); // ignore autoplay restrictions
     currentMusic = audio;
 }
 
@@ -138,10 +182,22 @@ export function stopMusic() {
 }
 
 /**
+ * Stops the currently playing sound effect (SFX) and resets its position.
+ */
+export function stopSfx() {
+    if (currentSfx) {
+        currentSfx.pause();
+        currentSfx.currentTime = 0;
+        currentSfx = null;
+    }
+}
+
+/**
  * Plays a sound effect (SFX) once.
  * @param {string} sfxId - The ID of the SFX to play.
  */
 export function playSfx(sfxId) {
+    stopSfx();
     const track = sfxTracks.find(trackItem => trackItem.id === sfxId);
     if (!track) return;
 
@@ -149,43 +205,153 @@ export function playSfx(sfxId) {
     audio.volume = currentVolume;
     audio.loop = false;
     audio.currentTime = 0;
-    audio.play().catch(() => { });
+    audio.play()?.catch?.(() => { });
+    currentSfx = audio;
+}
+
+/**
+ * Toggles preview playback for a music track or random music selection.
+ * @param {string} optionValue - Selected dropdown value ('none', 'random', or specific ID).
+ * @returns {boolean} True if music preview is now playing, false if stopped.
+ */
+export function previewMusicTrack(optionValue) {
+    if (optionValue === 'none') {
+        stopMusic();
+        previewMusicOption = null;
+        return false;
+    }
+
+    if (previewMusicOption === optionValue && currentMusic) {
+        stopMusic();
+        previewMusicOption = null;
+        return false;
+    }
+
+    let trackId = optionValue;
+    if (optionValue === 'random') {
+        trackId = getRandomMusicId();
+    }
+
+    if (!trackId) {
+        stopMusic();
+        previewMusicOption = null;
+        return false;
+    }
+
+    playMusic(trackId);
+    previewMusicOption = optionValue;
+    return true;
+}
+
+/**
+ * Toggles preview playback for an SFX track or random SFX selection.
+ * @param {string} optionValue - Selected dropdown value ('none', 'random', or specific ID).
+ * @param {Function} [onEnded] - Callback invoked when SFX finishes playing.
+ * @returns {boolean} True if SFX preview started playing, false if stopped.
+ */
+export function previewSfxTrack(optionValue, onEnded) {
+    if (optionValue === 'none') {
+        stopSfx();
+        previewSfxOption = null;
+        return false;
+    }
+
+    if (previewSfxOption === optionValue && currentSfx) {
+        stopSfx();
+        previewSfxOption = null;
+        return false;
+    }
+
+    stopSfx();
+
+    let sfxId = optionValue;
+    if (optionValue === 'random') {
+        sfxId = getRandomSfxId();
+    }
+
+    const track = sfxTracks.find(trackItem => trackItem.id === sfxId);
+    if (!track) {
+        previewSfxOption = null;
+        return false;
+    }
+
+    const audio = getAudio(track.file);
+    audio.volume = currentVolume;
+    audio.loop = false;
+    audio.currentTime = 0;
+
+    const handleEnded = () => {
+        audio.removeEventListener('ended', handleEnded);
+        if (currentSfx === audio) currentSfx = null;
+        previewSfxOption = null;
+        if (typeof onEnded === 'function') onEnded();
+    };
+
+    audio.addEventListener('ended', handleEnded);
+    audio.play()?.catch?.(() => { });
+    currentSfx = audio;
+    previewSfxOption = optionValue;
+    return true;
+}
+
+/**
+ * Stops all preview playback and clears preview states.
+ */
+export function stopAllPreviews() {
+    stopMusic();
+    stopSfx();
+    previewMusicOption = null;
+    previewSfxOption = null;
 }
 
 /**
  * Picks a random music track ID from the catalog.
- * Ensures the same track is not played twice in a row.
- * @returns {string|null} A random music track ID or null if list is empty.
+ * Ensures no repetition until all tracks in the catalog have been played at least once.
+ * @returns {string|null} A random music track ID or null if catalog is empty.
  */
 export function getRandomMusicId() {
-    if (musicTracks.length <= 1) {
-        return musicTracks.length > 0 ? musicTracks[0].id : null;
-    }
-    let newId;
-    do {
-        newId = musicTracks[Math.floor(Math.random() * musicTracks.length)].id;
-    } while (newId === lastRandomMusicId);
+    if (musicTracks.length === 0) return null;
 
-    lastRandomMusicId = newId;
-    return newId;
+    let available = musicTracks.filter(track => !playedMusicIds.has(track.id));
+
+    if (available.length === 0) {
+        playedMusicIds.clear();
+        available = musicTracks.slice();
+        if (lastRandomMusicId && musicTracks.length > 1) {
+            const filtered = available.filter(track => track.id !== lastRandomMusicId);
+            if (filtered.length > 0) available = filtered;
+        }
+    }
+
+    const selectedTrack = available[Math.floor(Math.random() * available.length)];
+    playedMusicIds.add(selectedTrack.id);
+    lastRandomMusicId = selectedTrack.id;
+    return selectedTrack.id;
 }
 
 /**
  * Picks a random SFX ID from the catalog.
- * Ensures the same track is not played twice in a row.
- * @returns {string|null} A random SFX ID or null if list is empty.
+ * Ensures no repetition until all tracks in the catalog have been played at least once.
+ * @returns {string|null} A random SFX ID or null if catalog is empty.
  */
 export function getRandomSfxId() {
-    if (sfxTracks.length <= 1) {
-        return sfxTracks.length > 0 ? sfxTracks[0].id : null;
-    }
-    let newId;
-    do {
-        newId = sfxTracks[Math.floor(Math.random() * sfxTracks.length)].id;
-    } while (newId === lastRandomSfxId);
+    if (sfxTracks.length === 0) return null;
 
-    lastRandomSfxId = newId;
-    return newId;
+    let available = sfxTracks.filter(track => !playedSfxIds.has(track.id));
+
+    if (available.length === 0) {
+        playedSfxIds.clear();
+        available = sfxTracks.slice();
+        if (lastRandomSfxId && sfxTracks.length > 1) {
+            const filtered = available.filter(track => track.id !== lastRandomSfxId);
+            if (filtered.length > 0) available = filtered;
+        }
+    }
+
+    const selectedTrack = available[Math.floor(Math.random() * available.length)];
+    playedSfxIds.add(selectedTrack.id);
+    lastRandomSfxId = selectedTrack.id;
+    return selectedTrack.id;
 }
 
 /**

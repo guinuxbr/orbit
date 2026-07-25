@@ -436,3 +436,111 @@ describe('theme.js', () => {
         expect(result).toBe('auto');
     });
 });
+
+// ============================================================
+// 9. SOUNDS — Random Track Selection (No Repetition Until All Played)
+// ============================================================
+describe('sounds.js – non-repeating random selection', () => {
+    beforeEach(async () => {
+        const { resetRandomHistory } = await import('../src/sounds.js');
+        resetRandomHistory();
+    });
+
+    test('getRandomMusicId plays every music track once before any track repeats', async () => {
+        const { musicTracks, getRandomMusicId } = await import('../src/sounds.js');
+        const total = musicTracks.length;
+        const playedInCycle = new Set();
+
+        for (let i = 0; i < total; i++) {
+            const trackId = getRandomMusicId();
+            expect(trackId).not.toBeNull();
+            expect(playedInCycle.has(trackId)).toBe(false);
+            playedInCycle.add(trackId);
+        }
+
+        expect(playedInCycle.size).toBe(total);
+    });
+
+    test('getRandomSfxId plays every SFX track once before any track repeats', async () => {
+        const { sfxTracks, getRandomSfxId } = await import('../src/sounds.js');
+        const total = sfxTracks.length;
+        const playedInCycle = new Set();
+
+        for (let i = 0; i < total; i++) {
+            const trackId = getRandomSfxId();
+            expect(trackId).not.toBeNull();
+            expect(playedInCycle.has(trackId)).toBe(false);
+            playedInCycle.add(trackId);
+        }
+
+        expect(playedInCycle.size).toBe(total);
+    });
+
+    test('resetRandomHistory clears cycle tracking', async () => {
+        const { musicTracks, getRandomMusicId, resetRandomHistory } = await import('../src/sounds.js');
+        const firstPick = getRandomMusicId();
+        resetRandomHistory();
+
+        // After reset, all tracks are available again so firstPick can potentially be picked or at least is available
+        const pickedAfterReset = [];
+        for (let i = 0; i < musicTracks.length; i++) {
+            pickedAfterReset.push(getRandomMusicId());
+        }
+        expect(pickedAfterReset.length).toBe(musicTracks.length);
+        expect(new Set(pickedAfterReset).size).toBe(musicTracks.length);
+    });
+
+    test('addCustomTrack integrates into subsequent cycle', async () => {
+        const { sfxTracks, getRandomSfxId, addCustomTrack, resetRandomHistory } = await import('../src/sounds.js');
+        resetRandomHistory();
+        const customId = `test_custom_sfx_${Date.now()}`;
+        addCustomTrack('sfx', { id: customId, label: 'Custom Test SFX', file: '/audio/sfx/custom.mp3' });
+
+        const playedInCycle = new Set();
+        for (let i = 0; i < sfxTracks.length; i++) {
+            const id = getRandomSfxId();
+            playedInCycle.add(id);
+        }
+
+        expect(playedInCycle.has(customId)).toBe(true);
+    });
+
+    test('does not repeat the last played track immediately across cycle boundary', async () => {
+        const { musicTracks, getRandomMusicId, resetRandomHistory } = await import('../src/sounds.js');
+        resetRandomHistory();
+
+        // Complete 1st cycle
+        let lastInFirstCycle = null;
+        for (let i = 0; i < musicTracks.length; i++) {
+            lastInFirstCycle = getRandomMusicId();
+        }
+
+        // First pick of 2nd cycle
+        const firstInSecondCycle = getRandomMusicId();
+        expect(firstInSecondCycle).not.toBe(lastInFirstCycle);
+    });
+
+    test('previewMusicTrack starts and stops music preview', async () => {
+        const { previewMusicTrack, stopAllPreviews } = await import('../src/sounds.js');
+        expect(previewMusicTrack('none')).toBe(false);
+        expect(previewMusicTrack('random')).toBe(true);
+        // Second call with same option toggles off
+        expect(previewMusicTrack('random')).toBe(false);
+        stopAllPreviews();
+    });
+
+    test('previewSfxTrack starts SFX preview and switches tracks', async () => {
+        const { previewSfxTrack, stopAllPreviews, sfxTracks } = await import('../src/sounds.js');
+        expect(previewSfxTrack('none')).toBe(false);
+        expect(previewSfxTrack('random')).toBe(true);
+        // Toggling same active option turns preview off
+        expect(previewSfxTrack('random')).toBe(false);
+        if (sfxTracks.length >= 2) {
+            expect(previewSfxTrack(sfxTracks[0].id)).toBe(true);
+            expect(previewSfxTrack(sfxTracks[1].id)).toBe(true);
+        }
+        stopAllPreviews();
+    });
+});
+
+
