@@ -1,0 +1,8 @@
+name = "orbit-image-proxy"
+main = "index.js"
+compatibility_date = "2024-09-01"
+workers_dev = true
+preview_urls = true
+
+[observability]
+enabled = true
