@@ -66,3 +66,8 @@ Thumbs.db
 
 # Rumdl
 .rumdl_cache/
+
+# Cloudflare Wrangler
+.wrangler/
+.dev.vars
+

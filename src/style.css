@@ -24,10 +24,7 @@
   filter: drop-shadow(0 0 8px var(--color-primary-shadow));
 }
 
-
-
-@variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
-
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 :root {
   --radius: 20px;
@@ -209,6 +206,16 @@ body {
 /* ==========================================
    Gallery
    ========================================== */
+#gallery-grid {
+  align-content: start;
+  grid-auto-rows: max-content;
+}
+
+.gallery-card {
+  width: 100%;
+  aspect-ratio: 1/1;
+}
+
 .gallery-item {
   width: 100%;
   aspect-ratio: 1/1;

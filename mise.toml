@@ -1,19 +1,49 @@
-# Development
-[tasks.dev]
+[tools]
+node = "26"
+rumdl = "latest"
+
+# Environment setup
+[tasks.npm-setup]
+description = "Install dependencies"
+run = "npm install"
+
+# Development & Build (Vite)
+[tasks.vite-dev]
 description = "Start the Vite development server (accessible on the network)"
 run = "npm run dev -- --host"
 
-[tasks.build]
+[tasks.vite-build]
 description = "Build the production bundle via Vite"
 run = "npm run build"
 
-[tasks.preview]
+[tasks.vite-preview]
 description = "Preview the production build locally (accessible on the network)"
 run = "npm run preview -- --host"
 
-[tasks.test]
+# Testing (Vitest)
+[tasks.vitest]
 description = "Run the Vitest test suite"
 run = "npm run test"
+
+# Markdown (Rumdl)
+[tasks.rumdl]
+description = "Lint Markdown files using Rumdl"
+run = "rumdl check ."
+
+[tasks.rumdl-fmt]
+description = "Format Markdown files using Rumdl"
+run = "rumdl fmt ."
+
+# Cloudflare Worker (Wrangler)
+[tasks.wrangler-deploy]
+description = "Deploy the Cloudflare Worker image proxy via Wrangler"
+dir = "worker"
+run = "npx wrangler deploy"
+
+[tasks.wrangler-tail]
+description = "Stream live logs from the Cloudflare Worker"
+dir = "worker"
+run = "npx wrangler tail"
 
 # Docker - GHCR image (standard)
 [tasks.docker-up]

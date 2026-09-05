@@ -16,8 +16,8 @@ smooth animations, and customization options.
 ## ✨ Features
 
 - **📝 Smart Name Management**: Easily add, edit, and remove names from the wheel in real-time.
-- **🖼️ Custom Imagery**: Set a central image for your wheel or use it as a full wheel background. Browse a built-in
-gallery or upload your own.
+- **🖼️ Custom Imagery**: Set a central image for your wheel or use it as a full wheel background. Browse curated
+high-resolution photos (via Pexels) or Openverse, with Bring-Your-Own-Key support for self-hosters, or upload your own.
 - **🔊 Immersive Soundscapes**: Dynamic spinning music and winner sound effects (SFX) with full volume control and
 custom MP3 support.
 - **🎨 Premium Design System**:
@@ -33,6 +33,8 @@ frame-rate-independent animations.
 
 - **Frontend**: [Vite](https://vitejs.dev/) + [Tailwind CSS](https://tailwindcss.com/)
 - **Logic**: Modern ES6+ JavaScript
+- **Serverless**: [Cloudflare Workers](https://workers.cloudflare.com/) (edge-cached Pexels image proxy with strict
+  origin protection)
 - **Infrastructure**: [Docker](https://www.docker.com/) + [Nginx](https://www.nginx.com/)
 - **Base Images**: [Chainguard Images](https://www.chainguard.dev/) (for minimal attack surface and maximum security)
 - **Container Registry**: [GitHub Container Registry (GHCR)](https://ghcr.io) — images published automatically on every
@@ -73,10 +75,14 @@ The app will be available at `http://localhost:5173`.
 
 | Task                            | Description                                             |
 |---------------------------------|---------------------------------------------------------|
-| `mise run dev`                  | Start the Vite development server                       |
-| `mise run build`                | Build the production bundle                             |
-| `mise run preview`              | Preview the production build locally                    |
-| `mise run test`                 | Run the test suite                                      |
+| `mise run vite-dev`             | Start the Vite development server (alias: `dev`)        |
+| `mise run vite-build`           | Build the production bundle (alias: `build`)            |
+| `mise run vite-preview`         | Preview the production build locally (alias: `preview`) |
+| `mise run vitest`               | Run the test suite (alias: `test`)                      |
+| `mise run rumdl`                | Lint Markdown files with Rumdl                          |
+| `mise run rumdl-fmt`            | Format Markdown files with Rumdl                        |
+| `mise run wrangler-deploy`      | Deploy the Cloudflare Worker image proxy via Wrangler   |
+| `mise run wrangler-tail`        | Stream live logs from the Cloudflare Worker             |
 | `mise run release <version>`    | Prepare a release (bump version, test, format & commit) |
 | `mise run docker-up`            | Pull the GHCR image and start the container             |
 | `mise run docker-down`          | Stop and remove the GHCR container                      |

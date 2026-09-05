@@ -305,19 +305,45 @@
       class="gallery-modal hidden fixed inset-0 bg-black/60 backdrop-blur-md z-2000 flex justify-center items-center p-0 sm:p-8 transition-opacity duration-300">
       <div
         class="gallery-modal-content bg-white dark:bg-orbit-dark-surface w-full h-full sm:h-auto sm:max-h-[85vh] sm:max-w-[900px] rounded-none sm:rounded-radius p-5 sm:p-8 flex flex-col shadow-2xl animate-in zoom-in-95 duration-300 relative border-0 sm:border border-white/20 dark:border-white/10">
-        <div class="gallery-modal-header flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+        <div class="gallery-modal-header flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
           <h3 class="text-2xl lg:text-3xl font-extrabold text-text dark:text-gray-100">Select an Image</h3>
-          <div class="search-container flex w-full md:w-auto gap-2 flex-1 max-w-md">
-            <input type="text" id="gallery-search-input" placeholder="Search Openverse (dogs, clouds)..."
+          <div class="search-container flex w-full md:w-auto gap-2 flex-1 max-w-md items-center">
+            <input type="text" id="gallery-search-input" placeholder="Search photos (dogs, clouds)..."
               class="flex-1 p-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 text-text dark:text-white focus:outline-none focus:ring-2 focus:ring-primary" />
             <button id="gallery-search-btn" class="p-3 px-6 rounded-radius-sm bg-primary text-white font-bold hover:bg-primary/90 flex items-center gap-2">
               <span>🔍</span> Search
             </button>
+            <button id="gallery-key-btn" type="button" class="p-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 hover:bg-gray-100 dark:hover:bg-white/10 text-text dark:text-white transition-all flex items-center justify-center shrink-0" title="Custom Pexels API Key">
+              <span>🔑</span>
+            </button>
           </div>
           <button id="gallery-close-btn" class="absolute top-4 right-4 sm:relative sm:top-auto sm:right-auto w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-white/10 text-2xl text-text-muted dark:text-gray-400">✕</button>
         </div>
-        <div id="gallery-grid" class="flex-1 overflow-y-auto grid grid-cols-[repeat(auto-fill,minmax(130px,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-4 sm:gap-6 mb-6 sm:mb-8 pr-2 custom-scrollbar"></div>
-        <button id="gallery-load-more" class="w-full p-4 rounded-radius-sm border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 font-bold hover:text-primary transition-all flex items-center justify-center gap-2">🖼️ Load More Images</button>
+        <!-- Collapsible BYOK panel for self-hosters / Docker -->
+        <div id="gallery-key-panel" class="hidden mb-4 p-4 rounded-radius-sm border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-black/30 backdrop-blur-sm flex flex-col gap-3">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+            <label for="gallery-key-input" class="text-xs font-semibold text-text-muted dark:text-gray-300">
+              Custom Pexels API Key (for Docker &amp; Self-Hosters):
+            </label>
+            <span id="gallery-provider-badge" class="text-[11px] px-2.5 py-0.5 rounded-full font-bold bg-primary/10 text-primary"></span>
+          </div>
+          <div class="flex flex-col sm:flex-row gap-2">
+            <input type="password" id="gallery-key-input" placeholder="Paste your free Pexels API key..."
+              class="flex-1 p-2.5 text-sm rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 text-text dark:text-white focus:outline-none focus:ring-2 focus:ring-primary" />
+            <div class="flex gap-2">
+              <button id="gallery-key-save" type="button" class="px-4 py-2 text-sm rounded-radius-sm bg-primary text-white font-bold hover:bg-primary/90 transition-all">Save Key</button>
+              <button id="gallery-key-clear" type="button" class="px-3 py-2 text-sm rounded-radius-sm border border-gray-200 dark:border-white/10 hover:bg-gray-200 dark:hover:bg-white/10 text-text-muted dark:text-gray-400 transition-all">Clear</button>
+            </div>
+          </div>
+          <p class="text-[11px] text-text-muted dark:text-gray-400">
+            Stored only in your browser. Get a free key at <a href="https://www.pexels.com/api/" target="_blank" rel="noopener noreferrer" class="underline text-primary">pexels.com/api</a>. Leave empty to use Openverse.
+          </p>
+        </div>
+        <div id="gallery-grid" class="flex-1 overflow-y-auto grid grid-cols-[repeat(auto-fill,minmax(130px,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(160px,1fr))] auto-rows-max content-start gap-4 sm:gap-6 mb-4 sm:mb-6 pr-2 custom-scrollbar"></div>
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-gray-100 dark:border-white/10">
+          <button id="gallery-load-more" class="w-full sm:w-auto flex-1 p-3 rounded-radius-sm border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 font-bold hover:text-primary transition-all flex items-center justify-center gap-2">🖼️ Load More Images</button>
+          <div id="gallery-attribution" class="text-xs text-text-muted dark:text-gray-400 flex items-center gap-1.5 shrink-0"></div>
+        </div>
       </div>
     </div>
 

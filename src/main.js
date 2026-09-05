@@ -6,7 +6,7 @@
 import { initTheme, applyTheme, getTheme } from './theme.js';
 import { INITIAL_NAMES, SPIN_SPEED_LABELS } from './constants.js';
 import { showError, hideError } from './utils.js';
-import { openGallery, loadGalleryImages, searchGallery } from './gallery.js';
+import { openGallery, loadGalleryImages, searchGallery, setCustomApiKey, clearCustomApiKey, updateGalleryUI } from './gallery.js';
 import { initGravityEffect } from './gravity.js';
 import { generateColors, drawWheel, loadImageFromURL, clearImage, handleImageUpload } from './wheel.js';
 import { spinWheel, removeWinnerOnce, removeWinnerAll, updateNames } from './spin.js';
@@ -225,6 +225,13 @@ function init() {
   dom.browseGalleryBtn = document.getElementById('browse-gallery-btn');
   dom.gallerySearchInput = document.getElementById('gallery-search-input');
   dom.gallerySearchBtn = document.getElementById('gallery-search-btn');
+  dom.galleryKeyBtn = document.getElementById('gallery-key-btn');
+  dom.galleryKeyPanel = document.getElementById('gallery-key-panel');
+  dom.galleryKeyInput = document.getElementById('gallery-key-input');
+  dom.galleryKeySave = document.getElementById('gallery-key-save');
+  dom.galleryKeyClear = document.getElementById('gallery-key-clear');
+  dom.galleryProviderBadge = document.getElementById('gallery-provider-badge');
+  dom.galleryAttribution = document.getElementById('gallery-attribution');
 
   dom.namesInput.value = state.names.join('\n');
 
@@ -354,6 +361,40 @@ function init() {
   if (dom.gallerySearchInput) {
     dom.gallerySearchInput.addEventListener('keydown', (event) => {
       if (event.key === 'Enter') searchGallery(state, dom);
+    });
+  }
+
+  if (dom.galleryKeyBtn && dom.galleryKeyPanel) {
+    dom.galleryKeyBtn.addEventListener('click', () => {
+      dom.galleryKeyPanel.classList.toggle('hidden');
+      if (!dom.galleryKeyPanel.classList.contains('hidden') && dom.galleryKeyInput) {
+        dom.galleryKeyInput.focus();
+      }
+    });
+  }
+
+  const applyCustomKey = () => {
+    if (dom.galleryKeyInput) {
+      setCustomApiKey(dom.galleryKeyInput.value);
+      updateGalleryUI(dom);
+      if (dom.galleryKeyPanel) dom.galleryKeyPanel.classList.add('hidden');
+      searchGallery(state, dom);
+    }
+  };
+
+  if (dom.galleryKeySave) dom.galleryKeySave.addEventListener('click', applyCustomKey);
+  if (dom.galleryKeyInput) {
+    dom.galleryKeyInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') applyCustomKey();
+    });
+  }
+
+  if (dom.galleryKeyClear) {
+    dom.galleryKeyClear.addEventListener('click', () => {
+      clearCustomApiKey();
+      updateGalleryUI(dom);
+      if (dom.galleryKeyPanel) dom.galleryKeyPanel.classList.add('hidden');
+      searchGallery(state, dom);
     });
   }
 
