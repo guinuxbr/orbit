@@ -6,6 +6,7 @@
 import { initTheme, applyTheme, getTheme } from './theme.js';
 import { INITIAL_NAMES, SPIN_SPEED_LABELS } from './constants.js';
 import { showError, hideError } from './utils.js';
+import { openDialog, closeDialog, wireDialogLightDismiss } from './dialog.js';
 import { openGallery, loadGalleryImages, searchGallery, setCustomApiKey, clearCustomApiKey, updateGalleryUI } from './gallery.js';
 import { initGravityEffect } from './gravity.js';
 import { generateColors, drawWheel, loadImageFromURL, clearImage, handleImageUpload } from './wheel.js';
@@ -81,6 +82,7 @@ function syncNamesUI() {
   state.colors = generateColors(state.names.length, state.currentWheelPalette);
   dom.namesInput.value = state.names.join('\n');
   dom.winnerToast.classList.remove('visible');
+  dom.winnerToast.inert = true;
   state.lastWinner = null;
   state.drawWheel();
   save();
@@ -109,11 +111,9 @@ function setupThemeSwitcher() {
   const updateActiveButtons = (theme) => {
     switchers.forEach(switcher => {
       switcher.querySelectorAll('button').forEach(btn => {
-        if (btn.getAttribute('data-theme-value') === theme) {
-          btn.classList.add('active');
-        } else {
-          btn.classList.remove('active');
-        }
+        const isActive = btn.getAttribute('data-theme-value') === theme;
+        btn.classList.toggle('active', isActive);
+        btn.setAttribute('aria-pressed', String(isActive));
       });
     });
   };
@@ -130,6 +130,12 @@ function setupThemeSwitcher() {
       });
     });
   });
+
+  window.addEventListener('storage', (event) => {
+    if (event.key === 'orbit-theme') {
+      updateActiveButtons(getTheme());
+    }
+  });
 }
 
 /**
@@ -145,8 +151,17 @@ function setupHamburger() {
     if (isOpen) {
       closeDrawer();
     } else {
+      drawer.inert = false;
       drawer.classList.add('open');
       menuBtn.setAttribute('aria-expanded', 'true');
+    }
+  });
+
+  // Close drawer on Escape key when no modal <dialog> is open
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && drawer.classList.contains('open') && !document.querySelector('dialog[open]')) {
+      closeDrawer();
+      menuBtn.focus();
     }
   });
 
@@ -162,6 +177,7 @@ function setupHamburger() {
 
   function closeDrawer() {
     drawer.classList.remove('open');
+    drawer.inert = true;
     menuBtn.setAttribute('aria-expanded', 'false');
   }
 }
@@ -223,6 +239,7 @@ function init() {
   dom.galleryGrid = document.getElementById('gallery-grid');
   dom.galleryLoadMore = document.getElementById('gallery-load-more');
   dom.browseGalleryBtn = document.getElementById('browse-gallery-btn');
+  dom.gallerySearchForm = document.getElementById('gallery-search-form');
   dom.gallerySearchInput = document.getElementById('gallery-search-input');
   dom.gallerySearchBtn = document.getElementById('gallery-search-btn');
   dom.galleryKeyBtn = document.getElementById('gallery-key-btn');
@@ -254,7 +271,21 @@ function init() {
   // --- Version Information ---
   if (dom.versionDisplay) {
     const releaseUrl = `https://github.com/guinuxbr/orbit/releases/tag/v${__APP_VERSION__}`;
-    dom.versionDisplay.innerHTML = `<a href="${releaseUrl}" target="_blank" rel="noopener noreferrer" class="hover:text-primary transition-colors">v${__APP_VERSION__}</a> (<a href="${releaseUrl}" target="_blank" rel="noopener noreferrer" class="hover:text-primary transition-colors">${__COMMIT_HASH__}</a>, ${__BUILD_DATE__})`;
+    const makeLink = (text) => {
+      const anchor = document.createElement('a');
+      anchor.href = releaseUrl;
+      anchor.target = '_blank';
+      anchor.rel = 'noopener noreferrer';
+      anchor.className = 'hover:text-primary transition-colors';
+      anchor.textContent = text;
+      return anchor;
+    };
+    dom.versionDisplay.replaceChildren(
+      makeLink(`v${__APP_VERSION__}`),
+      document.createTextNode(' ('),
+      makeLink(__COMMIT_HASH__),
+      document.createTextNode(`, ${__BUILD_DATE__})`)
+    );
   }
 
   // --- Configuration Restoration ---
@@ -354,20 +385,23 @@ function init() {
   });
 
   if (dom.browseGalleryBtn) dom.browseGalleryBtn.addEventListener('click', () => openGallery(state, dom));
-  if (dom.galleryCloseBtn) dom.galleryCloseBtn.addEventListener('click', () => dom.galleryModal.classList.add('hidden'));
+  if (dom.galleryCloseBtn) dom.galleryCloseBtn.addEventListener('click', () => closeDialog(dom.galleryModal));
   if (dom.galleryLoadMore) dom.galleryLoadMore.addEventListener('click', () => loadGalleryImages(state, dom));
 
-  if (dom.gallerySearchBtn) dom.gallerySearchBtn.addEventListener('click', () => searchGallery(state, dom));
-  if (dom.gallerySearchInput) {
-    dom.gallerySearchInput.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter') searchGallery(state, dom);
+  if (dom.gallerySearchForm) {
+    dom.gallerySearchForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      searchGallery(state, dom);
     });
+  } else if (dom.gallerySearchBtn) {
+    dom.gallerySearchBtn.addEventListener('click', () => searchGallery(state, dom));
   }
 
   if (dom.galleryKeyBtn && dom.galleryKeyPanel) {
     dom.galleryKeyBtn.addEventListener('click', () => {
-      dom.galleryKeyPanel.classList.toggle('hidden');
-      if (!dom.galleryKeyPanel.classList.contains('hidden') && dom.galleryKeyInput) {
+      const isHidden = dom.galleryKeyPanel.classList.toggle('hidden');
+      dom.galleryKeyBtn.setAttribute('aria-expanded', String(!isHidden));
+      if (!isHidden && dom.galleryKeyInput) {
         dom.galleryKeyInput.focus();
       }
     });
@@ -378,6 +412,7 @@ function init() {
       setCustomApiKey(dom.galleryKeyInput.value);
       updateGalleryUI(dom);
       if (dom.galleryKeyPanel) dom.galleryKeyPanel.classList.add('hidden');
+      if (dom.galleryKeyBtn) dom.galleryKeyBtn.setAttribute('aria-expanded', 'false');
       searchGallery(state, dom);
     }
   };
@@ -385,7 +420,11 @@ function init() {
   if (dom.galleryKeySave) dom.galleryKeySave.addEventListener('click', applyCustomKey);
   if (dom.galleryKeyInput) {
     dom.galleryKeyInput.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter') applyCustomKey();
+      if (event.key !== 'Enter') return;
+      // Check composition before preventDefault(); also catch Safari's out-of-order keyCode 229
+      if (event.isComposing || event.keyCode === 229) return;
+      event.preventDefault();
+      applyCustomKey();
     });
   }
 
@@ -400,36 +439,47 @@ function init() {
 
   dom.removeOneBtn.addEventListener('click', () => { removeWinnerOnce(state); save(); });
   dom.removeAllBtn.addEventListener('click', () => { removeWinnerAll(state); save(); });
-  dom.closeToastBtn.addEventListener('click', () => dom.winnerToast.classList.remove('visible'));
+  dom.closeToastBtn.addEventListener('click', () => {
+    dom.winnerToast.classList.remove('visible');
+    dom.winnerToast.inert = true;
+  });
 
-  // --- Reset Workflow (Custom Modal) ---
-  const resetModal    = document.getElementById('reset-modal');
-  const resetCancel   = document.getElementById('reset-modal-cancel');
-  const resetConfirm  = document.getElementById('reset-modal-confirm');
+  // --- Navbar Height Sync (for panel positioning) ---
+  const navbarEl = document.querySelector('.navbar');
+  const syncNavHeight = () => {
+    if (navbarEl) {
+      document.documentElement.style.setProperty('--navbar-h', `${navbarEl.offsetHeight}px`);
+    }
+  };
+  syncNavHeight();
+  if (navbarEl && typeof ResizeObserver === 'function') {
+    new ResizeObserver(syncNavHeight).observe(navbarEl);
+  } else {
+    window.addEventListener('resize', syncNavHeight);
+  }
 
-  const openResetModal  = () => resetModal?.classList.remove('hidden');
-  const closeResetModal = () => resetModal?.classList.add('hidden');
+  // --- Reset Workflow (Native Modal Dialog) ---
+  const resetModal = document.getElementById('reset-modal');
 
   ['reset-config-btn', 'reset-config-btn-mobile'].forEach(id => {
     const btn = document.getElementById(id);
-    if (btn) btn.addEventListener('click', openResetModal);
+    if (btn) btn.addEventListener('click', () => openDialog(resetModal));
   });
 
-  if (resetCancel)  resetCancel.addEventListener('click', closeResetModal);
-  if (resetModal)   resetModal.addEventListener('click', (event) => { if (event.target === resetModal) closeResetModal(); });
-  document.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeResetModal(); });
-
-  if (resetConfirm) {
-    resetConfirm.addEventListener('click', () => {
-      clearConfig();
-      location.reload();
+  if (resetModal) {
+    wireDialogLightDismiss(resetModal);
+    resetModal.addEventListener('close', () => {
+      const outcome = resetModal.returnValue;
+      resetModal.returnValue = '';
+      if (outcome === 'confirm') {
+        clearConfig();
+        location.reload();
+      }
     });
   }
 
   if (dom.galleryModal) {
-    dom.galleryModal.addEventListener('click', (event) => {
-      if (event.target === dom.galleryModal) dom.galleryModal.classList.add('hidden');
-    });
+    wireDialogLightDismiss(dom.galleryModal);
   }
 
   const closeErrorBtn = document.getElementById('close-error-btn');

@@ -3,6 +3,16 @@
  * @description Background particle animation system and idle wheel rotation.
  */
 
+import { getRootCssVar } from './utils.js';
+
+const reducedMotionQuery = typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+    ? window.matchMedia('(prefers-reduced-motion: reduce)')
+    : null;
+
+function prefersReducedMotion() {
+    return Boolean(reducedMotionQuery?.matches);
+}
+
 /**
  * Creates a single particle object for the gravity background effect.
  * @param {number} width - Canvas or window width.
@@ -23,11 +33,12 @@ export function createParticle(width, height) {
 }
 
 /**
- * Main animation loop for the background particles and idle wheel rotation.
+ * Renders one frame of background particles (and advances positions when motion is active).
  * @param {Object} state - The global application state.
  * @param {Object} dom - Global dictionary of DOM element references.
+ * @param {boolean} [animate=true] - Whether particle positions and idle wheel angle advance.
  */
-export function animateGravity(state, dom) {
+function renderGravityFrame(state, dom, animate = true) {
     const { gravityContext, gravityCanvas } = dom;
     if (!gravityContext || !gravityCanvas) return;
 
@@ -35,9 +46,7 @@ export function animateGravity(state, dom) {
 
     const centerX = gravityCanvas.width / 2;
     const centerY = gravityCanvas.height / 2;
-
-    const rootStyle = getComputedStyle(document.documentElement);
-    let primaryColor = rootStyle.getPropertyValue('--color-primary').trim() || '#00a489';
+    const primaryColor = getRootCssVar('--color-primary', '#00a489');
 
     gravityContext.fillStyle = primaryColor;
 
@@ -48,16 +57,17 @@ export function animateGravity(state, dom) {
         const deltaY = centerY - particle.y;
         const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
 
-        particle.angle += particle.baseSpeed * speedMultiplier;
-
-        particle.x = centerX + Math.cos(particle.angle) * particle.orbitRadius;
-        particle.y = centerY + Math.sin(particle.angle) * particle.orbitRadius;
+        if (animate) {
+            particle.angle += particle.baseSpeed * speedMultiplier;
+            particle.x = centerX + Math.cos(particle.angle) * particle.orbitRadius;
+            particle.y = centerY + Math.sin(particle.angle) * particle.orbitRadius;
+        }
 
         gravityContext.beginPath();
         gravityContext.arc(particle.x, particle.y, particle.size * (state.isSpinning ? 1.5 : 1), 0, Math.PI * 2);
         gravityContext.fill();
 
-        if (state.isSpinning && distance < 400) {
+        if (animate && state.isSpinning && distance < 400) {
             gravityContext.beginPath();
             gravityContext.moveTo(particle.x, particle.y);
             gravityContext.lineTo(centerX, centerY);
@@ -66,12 +76,29 @@ export function animateGravity(state, dom) {
         }
     }
 
-    if (!state.isSpinningWheel && !state.hasEverSpun) {
+    if (animate && !state.isSpinningWheel && !state.hasEverSpun) {
         state.startAngle += 0.0015;
         state.drawWheel();
     }
+}
 
-    requestAnimationFrame(() => animateGravity(state, dom));
+/**
+ * Main animation loop for the background particles and idle wheel rotation.
+ * Pauses when the document is hidden or when `prefers-reduced-motion: reduce` is active.
+ * @param {Object} state - The global application state.
+ * @param {Object} dom - Global dictionary of DOM element references.
+ */
+export function animateGravity(state, dom) {
+    const { gravityContext, gravityCanvas } = dom;
+    if (!gravityContext || !gravityCanvas) return;
+
+    if (document.hidden || prefersReducedMotion()) {
+        state.gravityAnimationId = null;
+        return;
+    }
+
+    renderGravityFrame(state, dom, true);
+    state.gravityAnimationId = requestAnimationFrame(() => animateGravity(state, dom));
 }
 
 /**
@@ -89,6 +116,9 @@ export function initGravityEffect(state, dom) {
         if (!dom.gravityCanvas) return;
         dom.gravityCanvas.width = window.innerWidth;
         dom.gravityCanvas.height = window.innerHeight;
+        if (prefersReducedMotion()) {
+            renderGravityFrame(state, dom, false);
+        }
     }
 
     window.addEventListener('resize', resizeGravityCanvas);
@@ -99,5 +129,26 @@ export function initGravityEffect(state, dom) {
         state.particles.push(createParticle(window.innerWidth, window.innerHeight));
     }
 
-    requestAnimationFrame(() => animateGravity(state, dom));
+    const syncMotionState = () => {
+        if (document.hidden || prefersReducedMotion()) {
+            if (state.gravityAnimationId != null) {
+                cancelAnimationFrame(state.gravityAnimationId);
+                state.gravityAnimationId = null;
+            }
+            if (!document.hidden && prefersReducedMotion()) {
+                renderGravityFrame(state, dom, false);
+            }
+        } else if (state.gravityAnimationId == null) {
+            state.gravityAnimationId = requestAnimationFrame(() => animateGravity(state, dom));
+        }
+    };
+
+    document.addEventListener('visibilitychange', syncMotionState);
+    reducedMotionQuery?.addEventListener('change', syncMotionState);
+
+    if (prefersReducedMotion()) {
+        renderGravityFrame(state, dom, false);
+    } else if (!document.hidden) {
+        state.gravityAnimationId = requestAnimationFrame(() => animateGravity(state, dom));
+    }
 }

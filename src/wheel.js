@@ -4,7 +4,7 @@
  */
 
 import { PALETTE } from './constants.js';
-import { validateFile } from './utils.js';
+import { validateFile, getRootCssVar } from './utils.js';
 
 /**
  * Generates an array of colors for the wheel segments based on the current palette.
@@ -83,9 +83,9 @@ export function drawWheel(state, dom) {
 
         context.beginPath();
         context.arc(centerX, centerY, innerRadius, 0, Math.PI * 2);
-        context.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-surface').trim() || '#fff';
+        context.fillStyle = getRootCssVar('--color-surface', '#fff');
         context.fill();
-        context.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim() || '#6c5ce7';
+        context.strokeStyle = getRootCssVar('--color-primary', '#6c5ce7');
         context.lineWidth = 4;
         context.stroke();
 
@@ -168,9 +168,9 @@ export function drawWheel(state, dom) {
     if (!isImageBackground) {
         context.beginPath();
         context.arc(centerX, centerY, innerRadius, 0, Math.PI * 2);
-        context.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-surface').trim() || '#fff';
+        context.fillStyle = getRootCssVar('--color-surface', '#fff');
         context.fill();
-        context.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim() || '#6c5ce7';
+        context.strokeStyle = getRootCssVar('--color-primary', '#6c5ce7');
         context.lineWidth = 4;
         context.stroke();
 
