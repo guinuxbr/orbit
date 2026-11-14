@@ -21,12 +21,17 @@ export function setupTabs() {
     /** Close the panel and reset all active states */
     function closePanel() {
         settingsPanel.classList.remove('open');
-        links.forEach(link => link.classList.remove('active'));
+        settingsPanel.inert = true;
+        links.forEach(link => {
+            link.classList.remove('active');
+            link.setAttribute('aria-expanded', 'false');
+        });
         contents.forEach(content => content.classList.remove('active'));
     }
 
     /** Open the panel */
     function openPanel() {
+        settingsPanel.inert = false;
         settingsPanel.classList.add('open');
     }
 
@@ -34,8 +39,12 @@ export function setupTabs() {
     const closeBtn = document.getElementById('close-settings-btn');
     if (closeBtn) closeBtn.addEventListener('click', closePanel);
 
-    // Close on Escape key
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') closePanel(); });
+    // Close on Escape key (skip when a modal <dialog> is open)
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && !document.querySelector('dialog[open]')) {
+            closePanel();
+        }
+    });
 
     links.forEach(link => {
         link.addEventListener('click', () => {
@@ -51,10 +60,14 @@ export function setupTabs() {
             }
 
             // Switch tab and open panel
-            links.forEach(innerLink => innerLink.classList.remove('active'));
+            links.forEach(innerLink => {
+                innerLink.classList.remove('active');
+                innerLink.setAttribute('aria-expanded', 'false');
+            });
             contents.forEach(content => content.classList.remove('active'));
 
             link.classList.add('active');
+            link.setAttribute('aria-expanded', 'true');
             if (targetContent) targetContent.classList.add('active');
             openPanel();
         });

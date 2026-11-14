@@ -17,6 +17,35 @@ export function easeOut(time, beginning, change, duration) {
     return beginning + change * (timeCubed + -3 * timeSquared + 3 * time);
 }
 
+let errorTimeoutId = null;
+
+const cssVarCache = {
+    signature: null,
+    values: new Map(),
+};
+
+/**
+ * Reads a CSS custom property from `:root`, caching across animation frames until
+ * `data-theme` or the inline `--color-primary` override changes.
+ * @param {string} propertyName
+ * @param {string} fallback
+ * @returns {string}
+ */
+export function getRootCssVar(propertyName, fallback) {
+    const root = document.documentElement;
+    const signature = `${root.getAttribute('data-theme') || ''}|${root.style.getPropertyValue('--color-primary')}`;
+    if (cssVarCache.signature !== signature) {
+        cssVarCache.signature = signature;
+        cssVarCache.values.clear();
+    }
+    if (cssVarCache.values.has(propertyName)) {
+        return cssVarCache.values.get(propertyName);
+    }
+    const resolved = getComputedStyle(root).getPropertyValue(propertyName).trim() || fallback;
+    cssVarCache.values.set(propertyName, resolved);
+    return resolved;
+}
+
 /**
  * Displays a temporary error banner at the top of the interface.
  * @param {string} message - The error message to display.
@@ -26,8 +55,14 @@ export function showError(message) {
     const messageElement = document.getElementById('error-message');
     if (messageElement) messageElement.textContent = message;
     if (banner) {
+        banner.inert = false;
         banner.classList.add('visible');
-        setTimeout(() => banner.classList.remove('visible'), 5000);
+        if (errorTimeoutId !== null) clearTimeout(errorTimeoutId);
+        errorTimeoutId = setTimeout(() => {
+            banner.classList.remove('visible');
+            banner.inert = true;
+            errorTimeoutId = null;
+        }, 5000);
     }
 }
 
@@ -35,8 +70,15 @@ export function showError(message) {
  * Manually hides the error banner.
  */
 export function hideError() {
+    if (errorTimeoutId !== null) {
+        clearTimeout(errorTimeoutId);
+        errorTimeoutId = null;
+    }
     const banner = document.getElementById('error-banner');
-    if (banner) banner.classList.remove('visible');
+    if (banner) {
+        banner.classList.remove('visible');
+        banner.inert = true;
+    }
 }
 
 /**

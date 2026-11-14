@@ -32,6 +32,7 @@ export function finalizeSpin(sfxId, state, dom) {
     // Show the result toast with name substitution
     const messageTemplate = dom.winnerMessageInput.value || '🎉 {name} wins!';
     document.getElementById('winner-text').textContent = messageTemplate.replace('{name}', winner);
+    dom.winnerToast.inert = false;
     dom.winnerToast.classList.add('visible');
 
     // Restore the "Click centre to SPIN!" overlay after a short delay
@@ -94,6 +95,7 @@ export function spinWheel(state, dom) {
     dom.spinBtn.classList.add('spinning');
     dom.spinInstruction.classList.add('hidden');
     dom.winnerToast.classList.remove('visible');
+    dom.winnerToast.inert = true;
     state.lastWinner = null;
 
     const durationMs    = (parseFloat(dom.spinDurationInput.value) || 5) * 1000;

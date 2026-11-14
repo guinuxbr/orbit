@@ -35,10 +35,42 @@
     radial-gradient(at 100% 0%, hsla(339, 49%, 30%, 1) 0, transparent 50%);
   --color-primary: #00a489;
   --color-primary-gradient: linear-gradient(135deg, #00a489 0%, #35b9ab 100%);
+  --scrollbar-track: transparent;
+  --scrollbar-thumb: var(--color-primary);
+
+  color-scheme: light dark;
+  accent-color: var(--color-primary);
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+
+  &:has(> head > meta[name="color-scheme"][content="dark"]) {
+    color-scheme: dark;
+  }
+
+  &:has(> head > meta[name="color-scheme"][content="light"]) {
+    color-scheme: light;
+  }
 }
 
-* {
+:where(button, a, input, select, textarea, label) {
   -webkit-tap-highlight-color: transparent;
+}
+
+.visually-hidden:where(:not(:focus-within, :active)) {
+  position: absolute !important;
+  clip-path: inset(50%) !important;
+  overflow: hidden !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  white-space: nowrap !important;
+}
+
+div:has(> input.visually-hidden:focus-visible) > label,
+#spin-btn:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 3px;
 }
 
 [data-theme="light"] {
@@ -82,15 +114,18 @@ body {
 #theme-switcher-mobile button.active {
   background-color: white;
   color: var(--color-primary);
-  transform: scale(1.1);
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+
+  @media (prefers-reduced-motion: no-preference) {
+    transform: scale(1.1);
+  }
 }
 
-.dark #theme-switcher button.active,
-.dark #theme-switcher-mobile button.active {
+[data-theme="dark"] #theme-switcher button.active,
+[data-theme="dark"] #theme-switcher-mobile button.active {
   background-color: rgba(255, 255, 255, 0.2);
 }
- 
+
 .theme-switcher button {
   border-radius: 9999px;
 }
@@ -110,8 +145,20 @@ body {
   background-color: var(--color-primary);
   background-image: var(--color-primary-gradient);
   color: white;
-  transform: scale(1.05);
   box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1), 0 0 0 4px var(--color-primary-shadow);
+
+  @media (prefers-reduced-motion: no-preference) {
+    transform: scale(1.05);
+  }
+}
+
+@media (forced-colors: active) {
+  .tab-link.active,
+  #theme-switcher button.active,
+  #theme-switcher-mobile button.active {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
 }
 
 /* On mobile, reset the scale on active tab-links to avoid layout shift on full-width buttons */
@@ -140,9 +187,11 @@ body {
   pointer-events: none;
   transform: translateX(110%);
   transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-  /* Custom scrollbar */
-  scrollbar-width: thin;
   scrollbar-color: var(--color-primary) transparent;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition-duration: 0.01s;
+  }
 }
 
 .settings-panel > * {
@@ -156,7 +205,7 @@ body {
 .settings-panel.open {
   transform: translateX(0);
 }
- 
+
 .close-settings-btn {
   position: sticky;
   top: 1rem;
@@ -165,8 +214,70 @@ body {
   margin-bottom: -2.5rem; /* Offset its height */
   z-index: 50;
 }
- 
- 
+
+/* ==========================================
+   Modal dialogs (native <dialog> + top layer)
+   ========================================== */
+dialog:modal {
+  overscroll-behavior: contain;
+}
+
+dialog::backdrop {
+  overflow: hidden;
+  overscroll-behavior: contain;
+  background-color: rgb(0 0 0 / 0);
+  backdrop-filter: blur(0px);
+  transition-property: background-color, backdrop-filter, display, overlay;
+  transition-duration: 0.25s;
+  transition-timing-function: ease-out;
+  transition-behavior: allow-discrete;
+}
+
+dialog.orbit-dialog {
+  opacity: 0;
+  transition-property: opacity, transform, display, overlay;
+  transition-duration: 0.25s;
+  transition-timing-function: ease-out;
+  transition-behavior: allow-discrete;
+
+  @media (prefers-reduced-motion: no-preference) {
+    transform: scale(0.95);
+  }
+}
+
+:is(dialog.orbit-dialog[open]):where(:not([data-closing])) {
+  opacity: 1;
+
+  @starting-style {
+    opacity: 0;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    transform: scale(1);
+
+    @starting-style {
+      transform: scale(0.95);
+    }
+  }
+
+  &::backdrop {
+    background-color: rgb(0 0 0 / 0.6);
+    backdrop-filter: blur(6px);
+
+    @starting-style {
+      background-color: rgb(0 0 0 / 0);
+      backdrop-filter: blur(0px);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  dialog.orbit-dialog,
+  dialog::backdrop {
+    transition-duration: 0.1s;
+  }
+}
+
 /* ==========================================
    Winner toast
    ========================================== */
@@ -197,13 +308,6 @@ body {
 }
 
 /* ==========================================
-   Wheel canvas
-   ========================================== */
-#wheel {
-  transition: transform 0.1s linear;
-}
-
-/* ==========================================
    Gallery
    ========================================== */
 #gallery-grid {
@@ -226,17 +330,22 @@ body {
   background: #eee;
 }
 
+@supports (color: light-dark(white, black)) {
+  .gallery-item {
+    background: light-dark(#eee, #1e293b);
+  }
+}
+
 .gallery-item:hover {
-  transform: scale(1.05);
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+
+  @media (prefers-reduced-motion: no-preference) {
+    transform: scale(1.05);
+  }
 }
 
-#gallery-search-input:focus {
+#gallery-search-input:focus-visible {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 4px var(--color-primary-shadow);
-}
-
-.dark #gallery-search-input:focus {
   box-shadow: 0 0 0 4px var(--color-primary-shadow);
 }
 
@@ -252,6 +361,21 @@ body {
 }
 
 .social-icon:hover svg {
-  transform: translateY(-2px);
   filter: drop-shadow(0 0 8px var(--color-primary-shadow));
+
+  @media (prefers-reduced-motion: no-preference) {
+    transform: translateY(-2px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body,
+  .nav-drawer,
+  .winner-toast,
+  .error-banner,
+  .tab-content,
+  .gallery-item,
+  .social-icon svg {
+    transition-duration: 0.1s;
+  }
 }

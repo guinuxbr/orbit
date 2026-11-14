@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <!--
   Orbit — A modern, fun spinner for names, raffles, and decisions.
   Built with vanilla JS and Tailwind CSS.
@@ -10,6 +10,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Orbit | Modern Decision Spinner</title>
   <meta name="description" content="Orbit — A modern, fun spinner for names, raffles, decisions, and random picks." />
+  <meta name="color-scheme" content="light dark" />
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('orbit-theme') || 'auto';
+        var meta = document.querySelector('meta[name="color-scheme"]');
+        if (saved === 'light' || saved === 'dark') {
+          if (meta) meta.content = saved;
+          document.documentElement.setAttribute('data-theme', saved);
+        } else {
+          if (meta) meta.content = 'light dark';
+          var isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+        }
+      } catch (e) {}
+    })();
+  </script>
   
   <!-- Font preconnect and styling -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -35,80 +52,84 @@
       class="fixed inset-0 w-full h-full pointer-events-none z-[-1] opacity-50 dark:opacity-70 transition-opacity duration-1000"></canvas>
 
     <!-- Navigation Header -->
-    <nav
-      class="navbar h-[44px] lg:h-[48px] px-4 lg:px-8 flex justify-between items-center bg-white/80 dark:bg-black/60 backdrop-blur-xl border-b border-white/20 dark:border-white/10 sticky top-0 z-100 transition-all">
-      <div class="nav-left">
-        <h1 class="logo text-2xl lg:text-[1.65rem] font-extrabold flex items-center gap-2 lg:gap-3">
-          <img src="/img/sun_icon.png" alt="Orbit Logo"
-            class="w-7 h-7 lg:w-9 lg:h-9 object-contain rounded-full drop-shadow-primary"> Orbit
-        </h1>
-      </div>
-
-      <!-- Desktop Interaction Bar -->
-      <div class="nav-right hidden lg:flex items-center gap-6">
-        <div
-          class="tabs flex gap-1.5 bg-white/50 dark:bg-white/5 p-1 rounded-radius border border-gray-200 dark:border-white/10 shadow-sm">
-          <button
-            class="tab-link px-4 py-[5px] rounded-radius-sm font-semibold transition-all text-text-muted hover:text-primary dark:hover:text-primary-light"
-            data-tab="names" aria-label="Names Settings">📝 Names</button>
-          <button
-            class="tab-link px-4 py-[5px] rounded-radius-sm font-semibold transition-all text-text-muted hover:text-primary dark:hover:text-primary-light"
-            data-tab="image" aria-label="Image Settings">🖼️ Image</button>
-          <button
-            class="tab-link px-4 py-[5px] rounded-radius-sm font-semibold transition-all text-text-muted hover:text-primary dark:hover:text-primary-light"
-            data-tab="sounds" aria-label="Sound Settings">🔊 Sounds</button>
-          <button
-            class="tab-link px-4 py-[5px] rounded-radius-sm font-semibold transition-all text-text-muted hover:text-primary dark:hover:text-primary-light"
-            data-tab="display" aria-label="Display Settings">⚙️ Display</button>
-            
-          <div class="w-px bg-gray-300 dark:bg-white/10 mx-1 self-stretch"></div>
-          <button id="reset-config-btn"
-            class="px-4 py-[5px] rounded-radius-sm font-semibold transition-all text-text-muted dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 active:scale-95"
-            title="Clear saved configuration and start fresh">🔄 Reset</button>
+    <header class="sticky top-0 z-100">
+      <nav aria-label="Primary"
+        class="navbar h-[44px] lg:h-[48px] px-4 lg:px-8 flex justify-between items-center bg-white/80 dark:bg-black/60 backdrop-blur-xl border-b border-white/20 dark:border-white/10 transition-all">
+        <div class="nav-left">
+          <h1 class="logo text-2xl lg:text-[1.65rem] font-extrabold flex items-center gap-2 lg:gap-3">
+            <img src="/img/sun_icon.png" alt="" width="36" height="36"
+              class="w-7 h-7 lg:w-9 lg:h-9 object-contain rounded-full drop-shadow-primary"> Orbit
+          </h1>
         </div>
 
-        <!-- Light/Dark/Auto Theme Switcher -->
-        <div
-          class="theme-switcher flex bg-white/50 dark:bg-white/5 p-1 rounded-full border border-gray-200 dark:border-white/10 shadow-inner"
-          id="theme-switcher">
-          <button data-theme-value="light" title="Light theme"
-            class="w-[38px] h-[38px] flex items-center justify-center rounded-full transition-all text-xl hover:scale-110 active:scale-95">☀️</button>
-          <button data-theme-value="dark" title="Dark theme"
-            class="w-[38px] h-[38px] flex items-center justify-center rounded-full transition-all text-xl hover:scale-110 active:scale-95">🌙</button>
-          <button data-theme-value="auto" title="Auto (system)"
-            class="w-[38px] h-[38px] flex items-center justify-center rounded-full transition-all text-xl hover:scale-110 active:scale-95">💻</button>
-        </div>
-      </div>
+        <!-- Desktop Interaction Bar -->
+        <div class="nav-right hidden lg:flex items-center gap-6">
+          <div
+            class="tabs flex gap-1.5 bg-white/50 dark:bg-white/5 p-1 rounded-radius border border-gray-200 dark:border-white/10 shadow-sm">
+            <button type="button"
+              class="tab-link px-4 py-[5px] rounded-radius-sm font-semibold transition-all text-text-muted hover:text-primary dark:hover:text-primary-light"
+              data-tab="names" aria-expanded="false" aria-controls="settings-panel"><span aria-hidden="true">📝</span> Names</button>
+            <button type="button"
+              class="tab-link px-4 py-[5px] rounded-radius-sm font-semibold transition-all text-text-muted hover:text-primary dark:hover:text-primary-light"
+              data-tab="image" aria-expanded="false" aria-controls="settings-panel"><span aria-hidden="true">🖼️</span> Image</button>
+            <button type="button"
+              class="tab-link px-4 py-[5px] rounded-radius-sm font-semibold transition-all text-text-muted hover:text-primary dark:hover:text-primary-light"
+              data-tab="sounds" aria-expanded="false" aria-controls="settings-panel"><span aria-hidden="true">🔊</span> Sounds</button>
+            <button type="button"
+              class="tab-link px-4 py-[5px] rounded-radius-sm font-semibold transition-all text-text-muted hover:text-primary dark:hover:text-primary-light"
+              data-tab="display" aria-expanded="false" aria-controls="settings-panel"><span aria-hidden="true">⚙️</span> Display</button>
+              
+            <div class="w-px bg-gray-300 dark:bg-white/10 mx-1 self-stretch" aria-hidden="true"></div>
+            <button type="button" id="reset-config-btn"
+              class="px-4 py-[5px] rounded-radius-sm font-semibold transition-all text-text-muted dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 active:scale-95"
+              aria-label="Reset configuration"
+              title="Clear saved configuration and start fresh"><span aria-hidden="true">🔄</span> Reset</button>
+          </div>
 
-      <!-- Mobile Menu Toggle -->
-      <button id="nav-menu-btn"
-        class="lg:hidden flex flex-col justify-center items-center w-11 h-11 gap-[6px] rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-all font-bold"
-        aria-label="Toggle Mobile Menu" aria-expanded="false" aria-controls="nav-drawer">
-        <span class="hamburger-line block w-6 h-[2px] bg-text dark:bg-white rounded-full transition-all"></span>
-        <span class="hamburger-line block w-6 h-[2px] bg-text dark:bg-white rounded-full transition-all"></span>
-        <span class="hamburger-line block w-6 h-[2px] bg-text dark:bg-white rounded-full transition-all"></span>
-      </button>
-    </nav>
+          <!-- Light/Dark/Auto Theme Switcher -->
+          <div role="group" aria-label="Color theme"
+            class="theme-switcher flex bg-white/50 dark:bg-white/5 p-1 rounded-full border border-gray-200 dark:border-white/10 shadow-inner"
+            id="theme-switcher">
+            <button type="button" data-theme-value="light" aria-label="Light theme" aria-pressed="false" title="Light theme"
+              class="w-[38px] h-[38px] flex items-center justify-center rounded-full transition-all text-xl hover:scale-110 active:scale-95"><span aria-hidden="true">☀️</span></button>
+            <button type="button" data-theme-value="dark" aria-label="Dark theme" aria-pressed="false" title="Dark theme"
+              class="w-[38px] h-[38px] flex items-center justify-center rounded-full transition-all text-xl hover:scale-110 active:scale-95"><span aria-hidden="true">🌙</span></button>
+            <button type="button" data-theme-value="auto" aria-label="Auto (system) theme" aria-pressed="false" title="Auto (system)"
+              class="w-[38px] h-[38px] flex items-center justify-center rounded-full transition-all text-xl hover:scale-110 active:scale-95"><span aria-hidden="true">💻</span></button>
+          </div>
+        </div>
+
+        <!-- Mobile Menu Toggle -->
+        <button type="button" id="nav-menu-btn"
+          class="lg:hidden flex flex-col justify-center items-center w-11 h-11 gap-[6px] rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-all font-bold"
+          aria-label="Toggle Mobile Menu" aria-expanded="false" aria-controls="nav-drawer">
+          <span class="hamburger-line block w-6 h-[2px] bg-text dark:bg-white rounded-full transition-all" aria-hidden="true"></span>
+          <span class="hamburger-line block w-6 h-[2px] bg-text dark:bg-white rounded-full transition-all" aria-hidden="true"></span>
+          <span class="hamburger-line block w-6 h-[2px] bg-text dark:bg-white rounded-full transition-all" aria-hidden="true"></span>
+        </button>
+      </nav>
+    </header>
 
     <!-- Mobile Drawer -->
-    <aside id="nav-drawer"
+    <aside id="nav-drawer" aria-label="Mobile menu" inert
       class="nav-drawer lg:hidden bg-white/95 dark:bg-black/90 backdrop-blur-xl border-b border-white/20 dark:border-white/10 overflow-hidden transition-all duration-300 max-h-0 z-90 relative">
       <div class="p-4 flex flex-col gap-3">
         <div class="flex flex-col gap-1">
-          <button class="tab-link w-full text-left px-4 py-3 rounded-radius-sm font-semibold text-text-muted" data-tab="names">📝 Names</button>
-          <button class="tab-link w-full text-left px-4 py-3 rounded-radius-sm font-semibold text-text-muted" data-tab="image">🖼️ Image</button>
-          <button class="tab-link w-full text-left px-4 py-3 rounded-radius-sm font-semibold text-text-muted" data-tab="sounds">🔊 Sounds</button>
-          <button class="tab-link w-full text-left px-4 py-3 rounded-radius-sm font-semibold text-text-muted" data-tab="display">⚙️ Display</button>
-          <div class="h-px bg-gray-200 dark:bg-white/10 my-1"></div>
-          <button id="reset-config-btn-mobile"
-            class="w-full text-left px-4 py-3 rounded-radius-sm font-semibold text-text-muted dark:text-gray-400 hover:text-red-500">🔄 Reset</button>
+          <button type="button" class="tab-link w-full text-left px-4 py-3 rounded-radius-sm font-semibold text-text-muted" data-tab="names" aria-expanded="false" aria-controls="settings-panel"><span aria-hidden="true">📝</span> Names</button>
+          <button type="button" class="tab-link w-full text-left px-4 py-3 rounded-radius-sm font-semibold text-text-muted" data-tab="image" aria-expanded="false" aria-controls="settings-panel"><span aria-hidden="true">🖼️</span> Image</button>
+          <button type="button" class="tab-link w-full text-left px-4 py-3 rounded-radius-sm font-semibold text-text-muted" data-tab="sounds" aria-expanded="false" aria-controls="settings-panel"><span aria-hidden="true">🔊</span> Sounds</button>
+          <button type="button" class="tab-link w-full text-left px-4 py-3 rounded-radius-sm font-semibold text-text-muted" data-tab="display" aria-expanded="false" aria-controls="settings-panel"><span aria-hidden="true">⚙️</span> Display</button>
+          <div class="h-px bg-gray-200 dark:bg-white/10 my-1" aria-hidden="true"></div>
+          <button type="button" id="reset-config-btn-mobile"
+            class="w-full text-left px-4 py-3 rounded-radius-sm font-semibold text-text-muted dark:text-gray-400 hover:text-red-500"
+            aria-label="Reset configuration"><span aria-hidden="true">🔄</span> Reset</button>
         </div>
         <div class="flex items-center gap-2 pt-2 border-t border-gray-200 dark:border-white/10">
           <span class="text-sm font-semibold text-text-muted dark:text-gray-400">Theme:</span>
-          <div class="theme-switcher flex bg-white/50 dark:bg-white/5 p-1 rounded-full border" id="theme-switcher-mobile">
-            <button data-theme-value="light" class="w-9 h-9 flex items-center justify-center rounded-full transition-all">☀️</button>
-            <button data-theme-value="dark" class="w-9 h-9 flex items-center justify-center rounded-full transition-all">🌙</button>
-            <button data-theme-value="auto" class="w-9 h-9 flex items-center justify-center rounded-full transition-all">💻</button>
+          <div role="group" aria-label="Color theme" class="theme-switcher flex bg-white/50 dark:bg-white/5 p-1 rounded-full border" id="theme-switcher-mobile">
+            <button type="button" data-theme-value="light" aria-label="Light theme" aria-pressed="false" title="Light theme" class="w-9 h-9 flex items-center justify-center rounded-full transition-all"><span aria-hidden="true">☀️</span></button>
+            <button type="button" data-theme-value="dark" aria-label="Dark theme" aria-pressed="false" title="Dark theme" class="w-9 h-9 flex items-center justify-center rounded-full transition-all"><span aria-hidden="true">🌙</span></button>
+            <button type="button" data-theme-value="auto" aria-label="Auto (system) theme" aria-pressed="false" title="Auto (system)" class="w-9 h-9 flex items-center justify-center rounded-full transition-all"><span aria-hidden="true">💻</span></button>
           </div>
         </div>
       </div>
@@ -122,8 +143,8 @@
         <div id="wheel-wrapper" class="wheel-wrapper relative w-full max-w-[min(88vw,calc(100dvh-240px))] lg:max-w-[min(72vw,calc(100dvh-240px))] xl:max-w-[min(68vw,calc(100dvh-240px))] 2xl:max-w-[min(64vw,calc(100dvh-240px))] mx-auto aspect-square transition-transform">
           
           <!-- Win Pointer Indicator -->
-          <div class="arrow-pointer absolute top-1/2 -right-[14px] sm:-right-[18px] lg:-right-[20px] -translate-y-1/2 z-30 drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)]">
-            <svg class="w-10 h-10 sm:w-12 sm:h-12 lg:w-[60px] lg:h-[60px] filter drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <div aria-hidden="true" class="arrow-pointer absolute top-1/2 -right-[14px] sm:-right-[18px] lg:-right-[20px] -translate-y-1/2 z-30 drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)]">
+            <svg aria-hidden="true" class="w-10 h-10 sm:w-12 sm:h-12 lg:w-[60px] lg:h-[60px] filter drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M12 30L48 12V48L12 30Z" fill="url(#arrow-grad)" stroke="white" stroke-width="3" stroke-linejoin="round" />
               <path d="M18 30L44 18V42L18 30Z" fill="white" fill-opacity="0.2" />
               <defs>
@@ -139,42 +160,43 @@
             class="w-full h-full rounded-full drop-shadow-[0_20px_40px_rgba(0,0,0,0.3)] dark:drop-shadow-[0_20px_60px_rgba(0,0,0,0.6)]"></canvas>
           
           <!-- Central Spin Trigger -->
-          <button id="spin-btn" aria-label="Spin the wheel"
-            class="spin-button absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[29.7%] h-[29.7%] rounded-full bg-transparent border-none cursor-pointer z-20 outline-none"></button>
+          <button type="button" id="spin-btn" aria-label="Spin the wheel"
+            class="spin-button absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[29.7%] h-[29.7%] rounded-full bg-transparent border-none cursor-pointer z-20"></button>
 
           <!-- Winner Announcement Toast (Centered in Wheel) -->
-          <section id="winner-toast"
+          <section id="winner-toast" inert
             class="winner-toast absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[92vw] max-w-[520px] bg-white dark:bg-orbit-dark-surface p-5 lg:p-6 px-6 lg:px-10 rounded-radius border border-primary/50 dark:border-primary/30 shadow-2xl z-1000 flex flex-col items-center gap-5 opacity-0 pointer-events-none transition-all duration-500 backdrop-blur-2xl"
             aria-live="polite">
             <div class="winner-info text-center">
-              <h2 id="winner-text" class="text-3xl lg:text-4xl font-extrabold bg-primary-gradient bg-clip-text text-transparent animate-bounce"></h2>
+              <h2 id="winner-text" class="text-3xl lg:text-4xl font-extrabold bg-primary-gradient bg-clip-text text-transparent motion-safe:animate-bounce"></h2>
             </div>
             <div class="winner-actions flex flex-wrap justify-center gap-3">
-              <button id="remove-one-btn" class="px-5 py-2.5 rounded-lg border border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary font-bold transition-all flex items-center gap-2">➖ Remove Once</button>
-              <button id="remove-all-btn" class="px-5 py-2.5 rounded-lg bg-red-600 text-white font-bold shadow-lg shadow-red-600/30 hover:bg-red-700 transition-all flex items-center gap-2">🗑️ Remove All</button>
-              <button id="close-toast-btn" class="px-5 py-2.5 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-text-muted dark:text-gray-300 font-bold flex items-center gap-2">✕ Close</button>
+              <button type="button" id="remove-one-btn" class="px-5 py-2.5 rounded-lg border border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary font-bold transition-all flex items-center gap-2"><span aria-hidden="true">➖</span> Remove Once</button>
+              <button type="button" id="remove-all-btn" class="px-5 py-2.5 rounded-lg bg-red-600 text-white font-bold shadow-lg shadow-red-600/30 hover:bg-red-700 transition-all flex items-center gap-2"><span aria-hidden="true">🗑️</span> Remove All</button>
+              <button type="button" id="close-toast-btn" class="px-5 py-2.5 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-text-muted dark:text-gray-300 font-bold flex items-center gap-2"><span aria-hidden="true">✕</span> Close</button>
             </div>
           </section>
         </div>
         
         <div id="spin-instruction"
-          class="spin-instruction mt-4 lg:mt-8 text-xl sm:text-2xl lg:text-3xl font-extrabold animate-pulse-slow text-text dark:text-gray-100 transition-all text-center">
+          class="spin-instruction mt-4 lg:mt-8 text-xl sm:text-2xl lg:text-3xl font-extrabold motion-safe:animate-pulse-slow text-text dark:text-gray-100 transition-all text-center">
           Click centre to SPIN!</div>
       </section>
 
     </main>
 
     <!-- Contextual Settings Panel (fixed right drawer) -->
-    <section class="settings-panel" id="settings-panel">
+    <section class="settings-panel" id="settings-panel" aria-label="Settings" inert>
         <!-- Close button for mobile/easy access -->
-        <button id="close-settings-btn" 
+        <button type="button" id="close-settings-btn" 
           class="close-settings-btn z-50 w-10 h-10 flex items-center justify-center rounded-full bg-white/20 dark:bg-black/40 backdrop-blur-md border border-white/20 dark:border-white/10 text-2xl text-text dark:text-gray-100 hover:bg-white/40 dark:hover:bg-white/10 transition-all cursor-pointer"
-          aria-label="Close settings">✕</button>
+          aria-label="Close settings"><span aria-hidden="true">✕</span></button>
 
         <!-- Tab: Names -->
         <div id="tab-names" class="tab-content transition-all duration-300">
           <div class="glass p-6 lg:p-8 rounded-radius border border-white/20 dark:border-white/10 shadow-xl bg-white/80 dark:bg-white/5 backdrop-blur-xl">
-            <h3 class="mb-6 pb-3 text-2xl font-bold border-b-2 border-gray-200 dark:border-white/20 text-text dark:text-white">Manage Names</h3>
+            <h2 class="mb-6 pb-3 text-2xl font-bold border-b-2 border-gray-200 dark:border-white/20 text-text dark:text-white">Manage Names</h2>
+            <label for="names-input" class="visually-hidden">Wheel names (one per line)</label>
             <textarea id="names-input"
               class="w-full p-4 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 text-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all text-text dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
               placeholder="Enter names, one per line…" rows="10"></textarea>
@@ -184,7 +206,7 @@
         <!-- Tab: Image -->
         <div id="tab-image" class="tab-content transition-all duration-300">
           <div class="glass p-6 lg:p-8 rounded-radius border border-white/20 dark:border-white/10 shadow-xl bg-white/80 dark:bg-white/5 backdrop-blur-xl">
-            <h3 class="mb-6 pb-3 text-2xl font-bold border-b-2 border-gray-200 dark:border-white/20 text-text dark:text-white">Center Image</h3>
+            <h2 class="mb-6 pb-3 text-2xl font-bold border-b-2 border-gray-200 dark:border-white/20 text-text dark:text-white">Center Image</h2>
             <div class="mb-6">
               <label for="image-size-select" class="block mb-2 font-bold text-text-muted dark:text-white">Image Size</label>
               <select id="image-size-select"
@@ -198,29 +220,29 @@
             </div>
             <div class="mb-6 flex items-center gap-3">
               <input type="checkbox" id="image-bg-toggle" class="w-5 h-5 accent-primary rounded cursor-pointer" />
-              <label for="image-bg-toggle" class="font-bold text-text-muted dark:text-white cursor-pointer select-none">
+              <label for="image-bg-toggle" class="font-bold text-text-muted dark:text-white cursor-pointer">
                 Use as Wheel Background
               </label>
             </div>
             <div class="mb-6">
-              <label class="block mb-2 font-bold text-text-muted dark:text-white">Load Source</label>
+              <span class="block mb-2 font-bold text-text-muted dark:text-white">Load Source</span>
               <div class="flex gap-3">
                 <div class="flex-1 min-w-0">
                   <label for="center-image-input"
                     class="flex items-center justify-center gap-2 p-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 text-sm font-bold text-text dark:text-white cursor-pointer hover:border-primary hover:text-primary dark:hover:border-primary transition-all whitespace-nowrap">
-                    📁 Upload Image
+                    <span aria-hidden="true">📁</span> Upload Image
                   </label>
-                  <input type="file" id="center-image-input" accept="image/*" class="hidden" />
+                  <input type="file" id="center-image-input" accept="image/*" class="visually-hidden" />
                 </div>
-                <button id="browse-gallery-btn"
+                <button type="button" id="browse-gallery-btn"
                   class="flex-1 min-w-0 p-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 text-sm font-bold text-text dark:text-white hover:border-primary hover:text-primary dark:hover:border-primary transition-all flex items-center justify-center gap-2 whitespace-nowrap">
-                  🖼️ Gallery
+                  <span aria-hidden="true">🖼️</span> Gallery
                 </button>
               </div>
             </div>
-            <button id="clear-image-btn"
+            <button type="button" id="clear-image-btn"
               class="w-full p-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 text-sm font-bold text-text dark:text-white hover:border-red-500 hover:text-red-500 dark:hover:text-red-400 transition-all flex items-center justify-center gap-2 cursor-pointer">
-              🗑️ Clear Image
+              <span aria-hidden="true">🗑️</span> Clear Image
             </button>
           </div>
         </div>
@@ -228,7 +250,7 @@
         <!-- Tab: Sounds -->
         <div id="tab-sounds" class="tab-content transition-all duration-300">
           <div class="glass p-6 lg:p-8 rounded-radius border border-white/20 dark:border-white/10 shadow-xl bg-white/80 dark:bg-white/5 backdrop-blur-xl">
-            <h3 class="mb-6 pb-3 text-2xl font-bold border-b-2 border-gray-200 dark:border-white/20 text-text dark:text-white">Audio Settings</h3>
+            <h2 class="mb-6 pb-3 text-2xl font-bold border-b-2 border-gray-200 dark:border-white/20 text-text dark:text-white">Audio Settings</h2>
             <div class="mb-6">
               <label for="spinning-sound" class="block mb-2 font-bold text-text-muted dark:text-white">Spinning Music</label>
               <div class="flex gap-2 items-center mb-2">
@@ -239,8 +261,8 @@
                 <button id="preview-music-btn" type="button" aria-label="Preview spinning music" title="Preview track" class="px-3.5 py-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 font-bold hover:border-primary hover:text-primary dark:hover:border-primary dark:text-white transition-all cursor-pointer flex items-center justify-center min-w-[44px] shrink-0">▶</button>
               </div>
               <div>
-                <label for="custom-music-input" class="flex items-center justify-center gap-2 p-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 text-sm font-bold text-text dark:text-white cursor-pointer hover:border-primary hover:text-primary dark:hover:border-primary transition-all whitespace-nowrap">📁 Upload Custom Music</label>
-                <input type="file" id="custom-music-input" accept="audio/*" class="hidden" />
+                <label for="custom-music-input" class="flex items-center justify-center gap-2 p-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 text-sm font-bold text-text dark:text-white cursor-pointer hover:border-primary hover:text-primary dark:hover:border-primary transition-all whitespace-nowrap"><span aria-hidden="true">📁</span> Upload Custom Music</label>
+                <input type="file" id="custom-music-input" accept="audio/*" class="visually-hidden" />
               </div>
             </div>
             <div class="mb-6">
@@ -253,8 +275,8 @@
                 <button id="preview-sfx-btn" type="button" aria-label="Preview winner SFX" title="Preview track" class="px-3.5 py-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 font-bold hover:border-primary hover:text-primary dark:hover:border-primary dark:text-white transition-all cursor-pointer flex items-center justify-center min-w-[44px] shrink-0">▶</button>
               </div>
               <div>
-                <label for="custom-sfx-input" class="flex items-center justify-center gap-2 p-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 text-sm font-bold text-text dark:text-white cursor-pointer hover:border-primary hover:text-primary dark:hover:border-primary transition-all whitespace-nowrap">📁 Upload Custom SFX</label>
-                <input type="file" id="custom-sfx-input" accept="audio/*" class="hidden" />
+                <label for="custom-sfx-input" class="flex items-center justify-center gap-2 p-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 text-sm font-bold text-text dark:text-white cursor-pointer hover:border-primary hover:text-primary dark:hover:border-primary transition-all whitespace-nowrap"><span aria-hidden="true">📁</span> Upload Custom SFX</label>
+                <input type="file" id="custom-sfx-input" accept="audio/*" class="visually-hidden" />
               </div>
             </div>
             <div class="mb-6">
@@ -270,7 +292,7 @@
         <!-- Tab: Display -->
         <div id="tab-display" class="tab-content transition-all duration-300">
           <div class="glass p-6 lg:p-8 rounded-radius border border-white/20 dark:border-white/10 shadow-xl bg-white/80 dark:bg-white/5 backdrop-blur-xl">
-            <h3 class="mb-6 pb-3 text-2xl font-bold border-b-2 border-gray-200 dark:border-white/20 text-text dark:text-white">Display & Behaviour</h3>
+            <h2 class="mb-6 pb-3 text-2xl font-bold border-b-2 border-gray-200 dark:border-white/20 text-text dark:text-white">Display &amp; Behaviour</h2>
             <div class="mb-6">
               <label for="ui-theme-select" class="block mb-2 font-bold text-text-muted dark:text-white">Colour Palette</label>
               <select id="ui-theme-select" class="w-full p-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 text-text dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"></select>
@@ -298,26 +320,28 @@
 
     </section>
 
-    <!-- Page Footer -->
-
     <!-- Gallery Image Picker Modal -->
-    <div id="gallery-modal"
-      class="gallery-modal hidden fixed inset-0 bg-black/60 backdrop-blur-md z-2000 flex justify-center items-center p-0 sm:p-8 transition-opacity duration-300">
+    <dialog id="gallery-modal" closedby="any" aria-labelledby="gallery-modal-title"
+      class="orbit-dialog gallery-modal m-auto bg-transparent border-0 p-0 w-full h-full max-w-none max-h-none sm:w-[calc(100%-4rem)] sm:max-w-[900px] sm:h-auto sm:max-h-[85vh] open:flex flex-col">
       <div
-        class="gallery-modal-content bg-white dark:bg-orbit-dark-surface w-full h-full sm:h-auto sm:max-h-[85vh] sm:max-w-[900px] rounded-none sm:rounded-radius p-5 sm:p-8 flex flex-col shadow-2xl animate-in zoom-in-95 duration-300 relative border-0 sm:border border-white/20 dark:border-white/10">
+        class="gallery-modal-content bg-white dark:bg-orbit-dark-surface w-full h-full sm:h-auto sm:max-h-[85vh] rounded-none sm:rounded-radius p-5 sm:p-8 flex flex-col shadow-2xl relative border-0 sm:border border-white/20 dark:border-white/10">
         <div class="gallery-modal-header flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
-          <h3 class="text-2xl lg:text-3xl font-extrabold text-text dark:text-gray-100">Select an Image</h3>
-          <div class="search-container flex w-full md:w-auto gap-2 flex-1 max-w-md items-center">
-            <input type="text" id="gallery-search-input" placeholder="Search photos (dogs, clouds)..."
-              class="flex-1 p-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 text-text dark:text-white focus:outline-none focus:ring-2 focus:ring-primary" />
-            <button id="gallery-search-btn" class="p-3 px-6 rounded-radius-sm bg-primary text-white font-bold hover:bg-primary/90 flex items-center gap-2">
-              <span>🔍</span> Search
-            </button>
-            <button id="gallery-key-btn" type="button" class="p-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 hover:bg-gray-100 dark:hover:bg-white/10 text-text dark:text-white transition-all flex items-center justify-center shrink-0" title="Custom Pexels API Key">
-              <span>🔑</span>
-            </button>
-          </div>
-          <button id="gallery-close-btn" class="absolute top-4 right-4 sm:relative sm:top-auto sm:right-auto w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-white/10 text-2xl text-text-muted dark:text-gray-400">✕</button>
+          <h2 id="gallery-modal-title" class="text-2xl lg:text-3xl font-extrabold text-text dark:text-gray-100">Select an Image</h2>
+          <search class="flex w-full md:w-auto flex-1 max-w-md">
+            <form id="gallery-search-form" class="search-container flex w-full gap-2 items-center">
+              <label for="gallery-search-input" class="visually-hidden">Search images</label>
+              <input type="search" id="gallery-search-input" name="q" placeholder="Search photos (dogs, clouds)..."
+                autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="search" autofocus
+                class="flex-1 p-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 text-text dark:text-white focus:outline-none focus:ring-2 focus:ring-primary" />
+              <button type="submit" id="gallery-search-btn" class="p-3 px-6 rounded-radius-sm bg-primary text-white font-bold hover:bg-primary/90 flex items-center gap-2">
+                <span aria-hidden="true">🔍</span> Search
+              </button>
+              <button id="gallery-key-btn" type="button" aria-label="Custom Pexels API Key" aria-expanded="false" aria-controls="gallery-key-panel" class="p-3 rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 hover:bg-gray-100 dark:hover:bg-white/10 text-text dark:text-white transition-all flex items-center justify-center shrink-0" title="Custom Pexels API Key">
+                <span aria-hidden="true">🔑</span>
+              </button>
+            </form>
+          </search>
+          <button type="button" id="gallery-close-btn" aria-label="Close gallery" class="absolute top-4 right-4 sm:relative sm:top-auto sm:right-auto w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-white/10 text-2xl text-text-muted dark:text-gray-400"><span aria-hidden="true">✕</span></button>
         </div>
         <!-- Collapsible BYOK panel for self-hosters / Docker -->
         <div id="gallery-key-panel" class="hidden mb-4 p-4 rounded-radius-sm border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-black/30 backdrop-blur-sm flex flex-col gap-3">
@@ -329,6 +353,7 @@
           </div>
           <div class="flex flex-col sm:flex-row gap-2">
             <input type="password" id="gallery-key-input" placeholder="Paste your free Pexels API key..."
+              autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="done"
               class="flex-1 p-2.5 text-sm rounded-radius-sm border border-gray-200 dark:border-white/20 bg-white dark:bg-black/60 text-text dark:text-white focus:outline-none focus:ring-2 focus:ring-primary" />
             <div class="flex gap-2">
               <button id="gallery-key-save" type="button" class="px-4 py-2 text-sm rounded-radius-sm bg-primary text-white font-bold hover:bg-primary/90 transition-all">Save Key</button>
@@ -341,21 +366,21 @@
         </div>
         <div id="gallery-grid" class="flex-1 overflow-y-auto grid grid-cols-[repeat(auto-fill,minmax(130px,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(160px,1fr))] auto-rows-max content-start gap-4 sm:gap-6 mb-4 sm:mb-6 pr-2 custom-scrollbar"></div>
         <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-gray-100 dark:border-white/10">
-          <button id="gallery-load-more" class="w-full sm:w-auto flex-1 p-3 rounded-radius-sm border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 font-bold hover:text-primary transition-all flex items-center justify-center gap-2">🖼️ Load More Images</button>
+          <button type="button" id="gallery-load-more" class="w-full sm:w-auto flex-1 p-3 rounded-radius-sm border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 font-bold hover:text-primary transition-all flex items-center justify-center gap-2"><span aria-hidden="true">🖼️</span> Load More Images</button>
           <div id="gallery-attribution" class="text-xs text-text-muted dark:text-gray-400 flex items-center gap-1.5 shrink-0"></div>
         </div>
       </div>
-    </div>
+    </dialog>
 
     <!-- System Error Banner -->
-    <div id="error-banner"
+    <div id="error-banner" inert
       class="error-banner fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-danger/95 backdrop-blur-xl p-5 px-6 lg:p-6 lg:px-10 rounded-radius border border-white/20 shadow-2xl z-3000 flex items-center gap-4 text-white opacity-0 pointer-events-none transition-all duration-400 w-[92vw] max-w-[520px]"
       role="alert">
       <div class="error-content flex items-center gap-4 flex-1 min-w-0">
-        <span class="error-icon text-3xl shrink-0">💀</span>
+        <span class="error-icon text-3xl shrink-0" aria-hidden="true">💀</span>
         <span id="error-message" class="text-base lg:text-lg font-bold break-words"></span>
       </div>
-      <button id="close-error-btn" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/20 text-white transition-all text-xl shrink-0">✕</button>
+      <button type="button" id="close-error-btn" aria-label="Close error message" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/20 text-white transition-all text-xl shrink-0"><span aria-hidden="true">✕</span></button>
     </div>
 
     <!-- Page Footer -->
@@ -366,12 +391,12 @@
           <p class="text-text-muted dark:text-gray-400 font-semibold">© 2026 Orbit.</p>
         </div>
         <div class="footer-right flex items-center gap-4 lg:gap-6">
-          <a href="https://github.com/guinuxbr/orbit" target="_blank" rel="noopener noreferrer" class="social-icon text-text-muted dark:text-gray-400 hover:text-primary" title="GitHub">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <a href="https://github.com/guinuxbr/orbit" target="_blank" rel="noopener noreferrer" class="social-icon text-text-muted dark:text-gray-400 hover:text-primary" aria-label="Orbit on GitHub" title="GitHub">
+            <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
             </svg>
           </a>
-          <div id="version-display" class="text-[10px] lg:text-xs font-medium text-text-muted dark:text-gray-500 select-none"></div>
+          <div id="version-display" class="text-[10px] lg:text-xs font-medium text-text-muted dark:text-gray-500"></div>
         </div>
       </div>
     </footer>
@@ -379,34 +404,21 @@
   </div>
 
   <!-- Reset Confirmation Dialog -->
-  <div id="reset-modal"
-    class="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm hidden"
-    role="dialog" aria-modal="true" aria-labelledby="reset-modal-title">
+  <dialog id="reset-modal" closedby="any" aria-labelledby="reset-modal-title"
+    class="orbit-dialog m-auto bg-transparent border-0 p-0 w-[calc(100%-2rem)] max-w-sm rounded-radius shadow-2xl open:flex flex-col">
     <div
-      class="relative w-full max-w-sm mx-4 p-8 rounded-radius bg-white dark:bg-gray-900 shadow-2xl border border-gray-200 dark:border-white/10 flex flex-col gap-5 animate-in fade-in zoom-in-95">
-      <div class="text-5xl text-center select-none">⚠️</div>
+      class="relative w-full p-8 rounded-radius bg-white dark:bg-gray-900 border border-gray-200 dark:border-white/10 flex flex-col gap-5">
+      <div class="text-5xl text-center select-none" aria-hidden="true">⚠️</div>
       <h2 id="reset-modal-title" class="text-2xl font-extrabold text-center text-text dark:text-white">Reset to Defaults?</h2>
       <p class="text-center text-text-muted dark:text-gray-400 leading-relaxed">
         This will permanently clear all saved names, settings, and the selected image. The page will reload fresh.
       </p>
-      <div class="flex gap-3 mt-2">
-        <button id="reset-modal-cancel" class="flex-1 px-4 py-3 rounded-radius-sm border border-gray-200 dark:border-white/10 font-bold dark:text-white flex items-center justify-center gap-2">✕ Cancel</button>
-        <button id="reset-modal-confirm" class="flex-1 px-4 py-3 rounded-radius-sm bg-red-500 hover:bg-red-600 font-bold text-white shadow-lg flex items-center justify-center gap-2">🔄 Start Fresh</button>
-      </div>
+      <form method="dialog" class="flex gap-3 mt-2">
+        <button type="submit" id="reset-modal-cancel" value="cancel" autofocus class="flex-1 px-4 py-3 rounded-radius-sm border border-gray-200 dark:border-white/10 font-bold dark:text-white flex items-center justify-center gap-2"><span aria-hidden="true">✕</span> Cancel</button>
+        <button type="submit" id="reset-modal-confirm" value="confirm" class="flex-1 px-4 py-3 rounded-radius-sm bg-red-500 hover:bg-red-600 font-bold text-white shadow-lg flex items-center justify-center gap-2"><span aria-hidden="true">🔄</span> Start Fresh</button>
+      </form>
     </div>
-  </div>
-
-  <!-- Set --navbar-h so the fixed panel top tracks the navbar exactly -->
-  <script>
-    (function () {
-      function setNavbarHeight() {
-        const nav = document.querySelector('.navbar');
-        if (nav) document.documentElement.style.setProperty('--navbar-h', nav.getBoundingClientRect().height + 'px');
-      }
-      setNavbarHeight();
-      window.addEventListener('resize', setNavbarHeight);
-    })();
-  </script>
+  </dialog>
 
   <!-- Main JS Module -->
   <script type="module" src="/src/main.js"></script>

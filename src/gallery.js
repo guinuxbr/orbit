@@ -7,6 +7,7 @@
  */
 
 import { showError } from './utils.js';
+import { openDialog, closeDialog } from './dialog.js';
 
 export const STORAGE_KEY_PEXELS = 'orbit_pexels_api_key';
 export const OFFICIAL_HOST = 'orbit.guinuxbr.com';
@@ -235,6 +236,8 @@ export async function loadGalleryImages(state, dom) {
             imageElement.src = image.thumbnail;
             imageElement.alt = `Photo by ${image.author}`;
             imageElement.title = `Photo by ${image.author}`;
+            imageElement.loading = 'lazy';
+            imageElement.decoding = 'async';
             imageElement.className = 'gallery-item w-full h-full object-cover transition-transform duration-200 group-hover:scale-105';
 
             const caption = document.createElement('div');
@@ -266,7 +269,7 @@ export async function loadGalleryImages(state, dom) {
 
             card.addEventListener('click', () => {
                 state.loadImageFromURL(image.url);
-                dom.galleryModal.classList.add('hidden');
+                closeDialog(dom.galleryModal);
             });
 
             galleryGrid.appendChild(card);
@@ -311,7 +314,7 @@ async function fetchFromOpenverse(query, page) {
  */
 export function openGallery(state, dom) {
     updateGalleryUI(dom);
-    dom.galleryModal.classList.remove('hidden');
+    openDialog(dom.galleryModal);
     state.galleryPage = 1;
     dom.galleryGrid.innerHTML = '';
     loadGalleryImages(state, dom);
